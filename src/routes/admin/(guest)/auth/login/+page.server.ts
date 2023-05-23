@@ -1,5 +1,6 @@
 import { api } from '$src/routes/api';
 import { redirect, type RequestEvent } from '@sveltejs/kit';
+// @ts-ignore
 import type { Actions } from './$types';
 
 export const actions: Actions = {

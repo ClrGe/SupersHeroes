@@ -21,7 +21,11 @@
 
     onMount(() => {
         createMap();
-        map.addControl(new mapboxgl.NavigationControl());
+        const nav = new mapboxgl.NavigationControl({
+            visualizePitch: true,
+        });
+        map.addControl(nav, 'bottom-right');
+
         map.addControl(
             new MapboxGeocoder({
                 accessToken: accessToken,
@@ -87,9 +91,81 @@
             zoom: viewState.zoom,
             pitch: viewState.pitch,
             bearing: viewState.bearing,
+            attributionControl: false
+
         });
 
+        var marker = new mapboxgl.Marker();
+
+        function add_marker (event) {
+            var coordinates = event.lngLat;
+            console.log('Lng:', viewState.longitude, 'Lat:', viewState.latitude);
+            marker.setLngLat(coordinates).addTo(map);
+        }
+
+        map.on('click', add_marker);
+
+
         map.on("load", () => {
+                // Add an image to use as a custom marker
+                map.loadImage(
+                    'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',
+                    (error, image) => {
+                        if (error) throw error;
+                        map.addImage('custom-marker', image);
+// Add a GeoJSON source with 2 points
+                        map.addSource('points', {
+                            'type': 'geojson',
+                            'data': {
+                                'type': 'FeatureCollection',
+                                'features': [
+                                    {
+// feature for Mapbox DC
+                                        'type': 'Feature',
+                                        'geometry': {
+                                            'type': 'Point',
+                                            'coordinates': [
+                                                -77.03238901390978, 38.913188059745586
+                                            ]
+                                        },
+                                        'properties': {
+                                            'title': 'Mapbox DC'
+                                        }
+                                    },
+                                    {
+// feature for Mapbox SF
+                                        'type': 'Feature',
+                                        'geometry': {
+                                            'type': 'Point',
+                                            'coordinates': [-122.414, 37.776]
+                                        },
+                                        'properties': {
+                                            'title': 'Mapbox SF'
+                                        }
+                                    }
+                                ]
+                            }
+                        });
+
+// Add a symbol layer
+                        map.addLayer({
+                            'id': 'points',
+                            'type': 'symbol',
+                            'source': 'points',
+                            'layout': {
+                                'icon-image': 'custom-marker',
+// get the title name from the source's "title" property
+                                'text-field': ['get', 'title'],
+                                'text-font': [
+                                    'Open Sans Semibold',
+                                    'Arial Unicode MS Bold'
+                                ],
+                                'text-offset': [0, 1.25],
+                                'text-anchor': 'top'
+                            }
+                        });
+                    }
+                );
                 map.resize();
             }
         );
@@ -103,7 +179,7 @@
 
 
         <!-- Display a map with MapBox -->
-        <div class="w-full map overflow-hidden rounded-lg shadow-xs">
+        <div class="w-1/2 map overflow-hidden rounded-lg shadow-xs">
             <div id="map" bind:this={mapElement}></div>
         </div>
 
@@ -113,16 +189,12 @@
 <style>
     #map {
         position: absolute;
-        top: 12vh;
-        left: 10em;
-        width: 100%;
+        top: 15vh;
+        left: 25em;
+        width: 80%;
         height: 50vh;
         background: #e5e9ec;
 
     }
 
-    input {
-        left: 10em !important;
-        margin-left: 5vh !important;
-    }
 </style>

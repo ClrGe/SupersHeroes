@@ -5,7 +5,6 @@ import folder from './start/vite'
 const config = {
 	// make the route folder config to be appened first
 	...folder,
-
 	plugins: [...base.plugins],
 
 	test: {
@@ -19,6 +18,9 @@ const config = {
 			// append any aliases coming from the route folder config
 			...folder?.resolve?.alias
 		}
+	},
+	server: {
+		hmr: {overlay: false}, // 禁用或配置 HMR 连接 设置 server.hmr.overlay 为 false 可以禁用服务器错误遮罩层
 	}
 }
 

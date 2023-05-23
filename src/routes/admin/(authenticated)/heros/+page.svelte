@@ -1,14 +1,40 @@
 <script>
-    import {Button} from "flowbite-svelte";
-    import Modal from "$lib/components/MapComponent.svelte";
+    import {Button, Modal} from "flowbite-svelte";
     import {Map, Marker} from "@beyonk/svelte-mapbox";
     import MapComponent from "$lib/components/MapComponent.svelte";
+    import {onMount} from "svelte";
+    import {env} from "$env/dynamic/public";
+    import {goto} from "$app/navigation";
+    import {load} from "$src/routes/admin/(authenticated)/heros/+page.js";
     function onReady() {
         mapComponent.flyTo({center:[40.7127281,-74.0060152]})
     }
 
     let formModal = false;
     let mapComponent;
+
+let data = {
+    "name": "Batman",
+    "email": "bruce.wayne@gotham.dc",
+    "phone": "000000000000",
+    "city": "Gotham",
+    "longitude": -74.0060152,
+    "latitude": 40.7127281
+}
+let result = [];
+    // GET data from http://localhost:5039/api/Hero
+
+    const url = "http://localhost:5039/api/Hero";
+    let heroes = [];
+
+    // POST the form using fetch and set the request's mode to 'no-cors'
+    // to avoid CORS errors in the browser
+  async function submitForm(){
+      await load(data);
+  }
+    export let name;
+    export let email;
+heroes = data;
 </script>
 
 <svelte:head>
@@ -16,11 +42,13 @@
 </svelte:head>
 
 <main class="h-full pb-16 overflow-y-auto">
-    <div class="container px-6 mx-auto grid">
-        <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Ajouter un Super Héros</h2>
+
+
+        <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Ajouter un Super Héros </h2>
+
 
         <!-- Modal to be populated on click -->
-        <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+        <Modal id="form-modal" bind:open={formModal} size="xs" autoclose={false} class="w-full">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-body">
@@ -33,22 +61,22 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </Modal>
         <!-- Modal toggle -->
         <Button class="!bg-white !text-black " on:click={() => formModal = true}>Ajouter un Super Héros</Button>
 
         <Modal id="form-modal" bind:open={formModal} size="xl" autoclose={false} class="w-full">
             <!-- Form -->
             <div class="w-full overflow-hidden rounded-lg shadow-xs flex items-center ">
-                    <form class="w-full">
+                    <form id="form-hero" class="w-full" >
                         <div class="flex flex-wrap -mx-3 mb-6">
                             <div class="w-full  px-3 mb-6 md:mb-0">
                                 <label class="block uppercase tracking-wide text-gray-100 text-xs font-bold mb-2"
                                        for="grid-name">
                                     Nom de Super Héros
                                 </label>
-                                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-red-500 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
-                                       id="grid-name" type="text" placeholder="Batman">
+                                <input  class="appearance-none block w-full bg-gray-200 text-gray-700 border border-red-500 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
+                                       id="grid-name" name="name" type="text" placeholder="Batman">
                                 <p class="text-red-500 text-xs italic">Ce champ est obligatoire.</p>
                             </div>
                             <div class="w-full px-3">
@@ -57,16 +85,16 @@
                                     Email
                                 </label>
                                 <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                                       id="grid-email" type="text" placeholder="bruce.wayne@gotham.dc">
+                                       id="grid-email" name="email" type="text" placeholder="bruce.wayne@gotham.dc">
                             </div>
                         </div>
                         <div class="flex flex-wrap -mx-3 mb-6">
                             <div class="w-full px-3">
                                 <label class="block uppercase tracking-wide text-gray-100 text-xs font-bold mb-2"
-                                       for="grid-phone">
+                                       for="grid-phone" name="phone">
                                     Numéro de téléphone
                                 </label>
-                                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                                <input  class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                        id="grid-phone" type="text" placeholder="000000000000">
                                 <p class="text-gray-600 text-xs italic">Ce champ est obligatoire</p>
                             </div>
@@ -117,7 +145,10 @@
                             <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                    id="grid-lat" type="text" placeholder="2.35222">
                         </div>
-                        <Button type="submit" class="w-full1">Ajouter</Button>
+                        <button type="submit" on:click={submitForm} class="w-full">Ajouter</button>
+                        <pre>
+{result}
+</pre>
                     </form>
 
                 </div>
@@ -315,7 +346,6 @@
             </div>
         </div>
 
-    </div>
 </main>
 
 <style>
