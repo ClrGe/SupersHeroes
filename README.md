@@ -1,3 +1,21 @@
-# Supers Héros CRM - GUI
+# LA WEB APP DES SUPERS HÉROS
+## _Site web de mise en relation entre les supers héros et les municipalités_
 
-## Front-end du projet Supers-Héros CRM - CESI
+## Prérequis
+
+- NodeJS ^16.14.0
+- NPM ^8.1.0
+---
+## Installation
+
+```bash
+git clone git@github.com:ClrGe/SupersHeroes.git
+cd SupersHeroes
+npm install
+```
+---
+## Stack technique
+
+- SvelteJS
+- TailwindCSS
+- MapBox
