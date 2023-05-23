@@ -2,6 +2,7 @@
     import {Button} from "flowbite-svelte";
     import Modal from "$lib/components/MapComponent.svelte";
     import {Map, Marker} from "@beyonk/svelte-mapbox";
+    import MapComponent from "$lib/components/MapComponent.svelte";
     function onReady() {
         mapComponent.flyTo({center:[40.7127281,-74.0060152]})
     }
@@ -17,14 +18,6 @@
 <main class="h-full pb-16 overflow-y-auto">
     <div class="container px-6 mx-auto grid">
         <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Ajouter un Super Héros</h2>
-        <div>
-            <Map accessToken="pk.eyJ1IjoiY2xhaXJnZSIsImEiOiJjbGdxNmtiNTkwNmRmM2pzM3drbnA5a3h5In0.akdkLqiIt0WArmknZwTNCw"
-                   style="mapbox://styles/mapbox/outdoors-v11"
-                   bind:this={mapComponent}
-                   on:ready={onReady}
-        >
-            <Marker lat=-74.0060152 lng=40.7127281 label="NYC" />
-        </Map></div>
 
         <!-- Modal to be populated on click -->
         <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
@@ -321,6 +314,7 @@
         </span>
             </div>
         </div>
+
     </div>
 </main>
 

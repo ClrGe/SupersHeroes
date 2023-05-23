@@ -1,34 +1,51 @@
 <script>
-    import { Map, Geocoder, Marker, controls } from '@beyonk/svelte-mapbox'
+        import { onMount, setContext } from "svelte";
+        import { mapbox, keyApp } from "./mapbox.js";
 
-    const { GeolocateControl, NavigationControl, ScaleControl } = controls
-    let mapComponent;
+        setContext(keyApp,{
+                getMap: () => map
+        });
 
-    // Usage of methods like setCenter and flyto
+        export let lat;
+        export let lon;
+        export let zoom;
+        export let style;
+        let container;
+        let map;
+        let viewState = {
+                longitude: -118.2443409,
+                latitude: 34.0544779,
+                zoom: 2,
+                pitch: 0,
+                bearing: 0,
+        };
 
-    // Define this to handle `eventname` events - see [GeoLocate Events](https://docs.mapbox.com/mapbox-gl-js/api/markers/#geolocatecontrol-events)
-    function eventHandler (e) {
-        const data = e.detail
-        // do something with `data`, it's the result returned from the mapbox event
-    }
-    const AccessToken = import.meta.env.VITE_MAPBOX_API_ACCESS_TOKEN;
+        onMount(() => {
+
+                map = new mapbox.Map({
+                        container,
+                        style,
+                        hash: true,
+                        zoom,
+                        attributionControl: false
+                });
 
 
+        });
 </script>
-<Map>
-        accessToken ="pk.eyJ1IjoiY2xhaXJnZSIsImEiOiJjbGdxNmtiNTkwNmRmM2pzM3drbnA5a3h5In0.akdkLqiIt0WArmknZwTNCw";
-bind:this={mapComponent} // Get reference to your map component to use methods
-on:recentre={e => console.log(e.detail.center.lat, e.detail.center.lng) } // recentre events
-options={{ scrollZoom: false }} // // add arbitrary options to the map from the mapbox api
->
-<Marker lat={-79.4512} lng={43.6568} color="rgb(255,255,255)" label="some marker label" popupClassName="class-name" /> // built in Marker component
-<GeolocateControl options={{ some: 'control-option' }} on:eventname={eventHandler} />
-<ScaleControl />
-
-</Map>
 
 <style>
-    :global(.mapboxgl-map) {
-        height: 200px;
-    }
+        #map {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                width: 100vw;
+                height: 100vh;
+        }
 </style>
+
+<div id="map" bind:this={container}>
+        {#if map}
+                <slot />
+        {/if}
+</div>
