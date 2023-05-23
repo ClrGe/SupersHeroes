@@ -3,14 +3,12 @@
 #    ./run {route-folder} {packages.scripts}
 #
 # As an example below:
-#    ./run demo dev
-#    ./run admin dev
-#    ./run admin-in dev
-#    ./run admin-out dev
-#    ./run blog dev
+#    ./run superheros dev
+#    ./run superheros-in dev
+#    ./run superheros-out dev
 #    ./run landing dev
 #
 # Others such as:
-#    ./run admin build
-#    ./run admin package
+#    ./run superheros build
+#    ./run superheros package
 ROUTE_FOLDER=$1 $(which npm) run $2 ${@:3}

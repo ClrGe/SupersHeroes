@@ -5,16 +5,19 @@
     import {onMount} from "svelte";
     import {env} from "$env/dynamic/public";
     import {goto} from "$app/navigation";
-    import {load} from "$src/routes/admin/(authenticated)/heros/+page.js";
+    import {load} from "$src/routes/superheros/heros/+page.js";
     function onReady() {
         mapComponent.flyTo({center:[40.7127281,-74.0060152]})
     }
 
     let formModal = false;
     let mapComponent;
+    let name;
+    let email;
+    let phone;
 
 let data = {
-    "name": "Batman",
+    "name": name || "Batman",
     "email": "bruce.wayne@gotham.dc",
     "phone": "000000000000",
     "city": "Gotham",
@@ -27,14 +30,15 @@ let result = [];
     const url = "http://localhost:5039/api/Hero";
     let heroes = [];
 
-    // POST the form using fetch and set the request's mode to 'no-cors'
-    // to avoid CORS errors in the browser
-  async function submitForm(){
-      await load(data);
-  }
-    export let name;
-    export let email;
-heroes = data;
+    let submitForm;
+    onMount(async () => {
+
+
+        submitForm = async () => {
+            await load(data);
+        }
+    });
+
 </script>
 
 <svelte:head>
@@ -75,7 +79,7 @@ heroes = data;
                                        for="grid-name">
                                     Nom de Super Héros
                                 </label>
-                                <input  class="appearance-none block w-full bg-gray-200 text-gray-700 border border-red-500 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
+                                <input  bind:value="{data.name}" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-red-500 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
                                        id="grid-name" name="name" type="text" placeholder="Batman">
                                 <p class="text-red-500 text-xs italic">Ce champ est obligatoire.</p>
                             </div>
@@ -84,7 +88,7 @@ heroes = data;
                                        for="grid-email">
                                     Email
                                 </label>
-                                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                                <input bind:value="{data.email}" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                        id="grid-email" name="email" type="text" placeholder="bruce.wayne@gotham.dc">
                             </div>
                         </div>
@@ -94,7 +98,7 @@ heroes = data;
                                        for="grid-phone" name="phone">
                                     Numéro de téléphone
                                 </label>
-                                <input  class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                                <input bind:value="{data.phone}" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                        id="grid-phone" type="text" placeholder="000000000000">
                                 <p class="text-gray-600 text-xs italic">Ce champ est obligatoire</p>
                             </div>
@@ -105,7 +109,7 @@ heroes = data;
                                        for="grid-city">
                                     Ville
                                 </label>
-                                <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                                <input bind:value="{data.city}" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                        id="grid-city" type="text" placeholder="Gotham">
                             </div>
                             <div class="w-full md:w-1/2 px-3 mb-6 md:mb-0">
@@ -129,7 +133,7 @@ heroes = data;
                                 </div>
                             </div>
                             <div class="w-full px-3 mb-12 md:mb-0">
-                                <label class="block uppercase tracking-wide text-gray-100 text-xs font-bold mb-2"
+                                <label bind:value="{data.longitude}" class="block uppercase tracking-wide text-gray-100 text-xs font-bold mb-2"
                                        for="grid-long">
                                     Latitude
                                 </label>
@@ -142,7 +146,7 @@ heroes = data;
                                    for="grid-lat">
                                 Latitude
                             </label>
-                            <input class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            <input bind:value="{data.latitude}" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                    id="grid-lat" type="text" placeholder="2.35222">
                         </div>
                         <button type="submit" on:click={submitForm} class="w-full">Ajouter</button>

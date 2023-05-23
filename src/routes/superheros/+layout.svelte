@@ -5,7 +5,7 @@
 	import { keydownEscape } from '$lib/ioevents/keydown'
 	import SideBar from '$lib/templates/Admin/SideBar.svelte'
 	import Header from '$lib/templates/Admin/Header.svelte'
-	import HtmlHead from '$src/routes/admin/html_head.svelte'
+	import HtmlHead from '$src/routes/superheros/html_head.svelte'
 	import { browser } from '$app/environment'
 	import { DarkMode } from 'flowbite-svelte';
 
