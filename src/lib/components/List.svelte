@@ -37,10 +37,19 @@
 <script>
     import { onMount, onDestroy } from 'svelte';
     import { listItems, sprudgeArticle } from '$stores/consts.js';
-    import { activeListItem, activeMapItem } from '$stores/stores.js';
+    import { activeListItem, activeMapItem, Events } from '$stores/stores.js';
     // Define the ref
     let listRef;
+    let currentEvents;
 
+
+    // get the Events store data and set it to currentEvents
+    const unsubscribe = Events.subscribe(value => {
+        currentEvents = value;
+    });
+
+
+console.log(currentEvents);
     onMount(async () => {
         // Import in-view
         const inView = await import('in-view');
@@ -76,22 +85,17 @@
     onDestroy(unsubscribeActiveListItem);
 </script>
 
-<div id="list-items" bind:this="{listRef}">
+<div id="list-items" bind:this="{currentEvents}">
     <div class="head block m-2">
         <h3>INCIDENTS DÉCLARÉS</h3>
     </div>
-    {#each listItems as listItem, index}
-        <div class="list-item" id="list-item-{index}">
-                <img src="{listItem.image}" alt="{listItem.name}" />
-                <h2>{listItem.name}</h2>
-            {@html listItem.description}
-        </div>
-    {/each}
+            <div class="list-item">
+                <h2>{currentEvents.city}</h2>
+                <h2>{currentEvents.status}</h2>
+            </div>
+
+
+
     <div class="tail">
-        <i>
-            This was made as part of a <a href="https://svelte.dev/">Svelte</a>
-            tutorial on <a href="https://dev.to/bryce/an-interactive-scrolling-map-list-in-svelte-34c3">dev.to</a>.
-            View source on <a href="https://gitlab.com/brycedorn/svelte-reactive-map-list">GitLab</a>.
-        </i>
     </div>
 </div>

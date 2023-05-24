@@ -1,19 +1,18 @@
 <script>
     import {Button, Modal} from "flowbite-svelte";
     import {onDestroy, onMount} from "svelte";
-    import {load} from "$src/routes/superheros/heros/+page.js";
-
+    import {api} from "../../api.ts";
+    let data = [];
     function onReady() {
         mapComponent.flyTo({center: [40.7127281, -74.0060152]})
     }
-
     let formModal = false;
     let mapComponent;
     let name;
     let email;
     let phone;
 
-    let data = {
+    let formHero = {
         "name": name || "Batman",
         "email": email || "bruce.wayne@gotham.dc",
         "phone": phone || "000000000000",
@@ -21,24 +20,31 @@
         "longitude": -74.0060152,
         "latitude": 40.7127281
     }
-    let result = [];
-    // GET data from http://localhost:5039/api/Hero
 
-    const url = "http://localhost:5039/api/Hero";
-    let heroes = [];
-    let mapRef;
-
-
-    let submitForm;
     onMount(async () => {
-
+        const response = await fetch('http://localhost:5039/api/hero');
+        data = await response.json();
+        console.log(data);
         await import('leaflet');
-
-        submitForm = async () => {
-            await load(data);
-        }
     });
 
+
+    async function submitForm(){
+        try {
+            const response = await fetch('http://localhost:5039/api/hero/add', {
+            method: 'POST',
+            headers: {
+                'Allow-Control-Allow-Origin': '*',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formHero)
+        });
+        console.log(data);
+        } catch (e) {
+            console.log(e);
+        }
+
+    }
 </script>
 
 <svelte:head>
@@ -50,8 +56,12 @@
 
     <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Ajouter un Super Héros </h2>
 
-
-    <!-- Modal to be populated on click -->
+    {#each data as item (item.id)}
+        <tr>
+            <td>{item.name}</td>
+            <td>{item.email}</td>
+        </tr>
+    {/each}
     <Modal autoclose={false} bind:open={formModal} class="w-full" id="form-modal" size="xs">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -71,7 +81,9 @@
     <Button class="!bg-white !text-black " on:click={() => formModal = true}>Ajouter un Super Héros</Button>
 
     <Modal autoclose={false} bind:open={formModal} class="w-full" id="form-modal" size="xl">
+
         <!-- Form -->
+
         <div class="w-full overflow-hidden rounded-lg shadow-xs flex items-center ">
             <form class="w-full" id="form-hero">
                 <div class="flex flex-wrap -mx-3 mb-6">
@@ -80,7 +92,7 @@
                                for="grid-name">
                             Nom de Super Héros
                         </label>
-                        <input bind:value="{data.name}"
+                        <input bind:value="{formHero.name}"
                                class="appearance-none block w-full bg-gray-200 text-gray-700 border border-red-500 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
                                id="grid-name" name="name" placeholder="Batman" type="text">
                         <p class="text-red-500 text-xs italic">Ce champ est obligatoire.</p>
@@ -90,7 +102,7 @@
                                for="grid-email">
                             Email
                         </label>
-                        <input bind:value="{data.email}"
+                        <input bind:value="{formHero.email}"
                                class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                id="grid-email" name="email" placeholder="bruce.wayne@gotham.dc" type="text">
                     </div>
@@ -101,7 +113,7 @@
                                for="grid-phone" name="phone">
                             Numéro de téléphone
                         </label>
-                        <input bind:value="{data.phone}"
+                        <input bind:value="{formHero.phone}"
                                class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                id="grid-phone" placeholder="000000000000" type="text">
                         <p class="text-gray-600 text-xs italic">Ce champ est obligatoire</p>
@@ -113,7 +125,7 @@
                                for="grid-city">
                             Ville
                         </label>
-                        <input bind:value="{data.city}"
+                        <input bind:value="{formHero.city}"
                                class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                id="grid-city" placeholder="Gotham" type="text">
                     </div>
@@ -142,7 +154,7 @@
                                for="grid-long">
                             Latitude
                         </label>
-                        <input  bind:value="{data.longitude}" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                        <input  bind:value="{formHero.longitude}" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                id="grid-long" placeholder="48.85667" type="text">
                     </div>
                 </div>
@@ -151,13 +163,12 @@
                            for="grid-lat">
                         Latitude
                     </label>
-                    <input bind:value="{data.latitude}"
+                    <input bind:value="{formHero.latitude}"
                            class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                            id="grid-lat" placeholder="2.35222" type="text">
                 </div>
                 <button class="w-full" on:click={submitForm} type="submit">Ajouter</button>
                 <pre>
-{result}
 </pre>
             </form>
 

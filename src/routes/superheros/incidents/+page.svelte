@@ -29,6 +29,7 @@
     import {Button, Modal} from "flowbite-svelte";
     import {onMount} from "svelte";
     import {load} from "$src/routes/superheros/incidents/+page.js";
+    import {Events} from "$stores/stores.js";
 
     let submitForm;
     let formModal = false;
@@ -46,7 +47,6 @@
         "latitude": 40.7127281,
         "status": "pending",
     }
-    let result = [];
 
     onMount(async () => {
 
@@ -54,6 +54,16 @@
             await load(data);
         }
     });
+
+    // GET the events and save as Events in the store
+    async function getEvents() {
+        const res = await fetch('http://localhost:5039/api/events');
+        const data = await res.json();
+        Events.set(data);
+    }
+
+
+
 </script>
 
 <main class="h-full overflow-y-auto">
@@ -158,9 +168,7 @@
                                id="grid-lat" placeholder="2.35222" type="text">
                     </div>
                     <button class="w-full" on:click={submitForm} type="submit">Ajouter</button>
-                    <pre>
-{result}
-</pre>
+
                 </form>
 
             </div>
