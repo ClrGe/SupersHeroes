@@ -220,14 +220,17 @@
 
             </Modal>
             <table class="whitespace-no-wrap">
-                <thead>
-                <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
-                    <th class="px-4 py-3">Type d'incident</th>
-                    <th class="px-4 py-3">Ville</th>
-                    <th class="px-4 py-3">Longitude</th>
-                    <th class="px-4 py-3">Latitude</th>
-                    <th class="px-4 py-3">Statut</th>
+                <thead >
+                <div class="flex items-center space-between">
+
+                <tr class="text-xs px-4 font-semibold  text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
+                    <th class="px-8 py-3">Type d'incident</th>
+                    <th class="px-8 py-3">Ville</th>
+                    <th class="px-8 py-3">Longitude</th>
+                    <th class="px-8 py-3">Latitude</th>
+                    <th class="px-6 py-3">Statut</th>
                 </tr>
+                </div>
                 </thead>
                 <tbody class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
                 {#each data as item (item.id)}
@@ -257,11 +260,11 @@
                                 <div>
                                     <p class="px-6 py-3 text-sm">{item.latitude}</p>
                                 </div>
-                        </td>
-                        <td class="px-4 py-3 text-xs">
+
                             <span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full dark:bg-green-700 dark:text-green-100">
                                 {item.status}
                             </span>
+                            </div>
                         </td>
                     </tr>
                 {/each}

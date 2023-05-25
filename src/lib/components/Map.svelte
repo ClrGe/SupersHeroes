@@ -69,8 +69,8 @@
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v11',
             // center: listItems[0].coordinates,
-            center: [-79.4512, 43.6568],
-            zoom: 13
+            center: [-74.0060152, 40.7127281],
+            zoom: 7
         });
 
         map.on('load', function () {
