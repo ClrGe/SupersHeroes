@@ -35,9 +35,8 @@
 </style>
 
 <script>
-    import { onMount, onDestroy } from 'svelte';
-    import { listItems, sprudgeArticle } from '$stores/consts.js';
-    import { activeListItem, activeMapItem, Events } from '$stores/stores.js';
+    import {onDestroy, onMount} from 'svelte';
+    import {activeListItem, activeMapItem, Events} from '$stores/stores.js';
     // Define the ref
     let listRef;
     let currentEvents;
@@ -49,7 +48,7 @@
     });
 
 
-console.log(currentEvents);
+    console.log(currentEvents);
     onMount(async () => {
         // Import in-view
         const inView = await import('in-view');
@@ -57,7 +56,7 @@ console.log(currentEvents);
         // Set a nicer offset so it's not a hard cutoff
         inView.offset(200);
 
-        listRef.addEventListener('scroll', function() {
+        listRef.addEventListener('scroll', function () {
             // Active list item is top-most fully-visible item
             const visibleListItems = Array.from(
                 document.getElementsByClassName('list-item')
@@ -85,15 +84,14 @@ console.log(currentEvents);
     onDestroy(unsubscribeActiveListItem);
 </script>
 
-<div id="list-items" bind:this="{currentEvents}">
+<div bind:this="{currentEvents}" id="list-items">
     <div class="head block m-2">
         <h3>INCIDENTS DÉCLARÉS</h3>
     </div>
-            <div class="list-item">
-                <h2>{currentEvents.city}</h2>
-                <h2>{currentEvents.status}</h2>
-            </div>
-
+    <div class="list-item">
+        <h2>{currentEvents.city}</h2>
+        <h2>{currentEvents.status}</h2>
+    </div>
 
 
     <div class="tail">

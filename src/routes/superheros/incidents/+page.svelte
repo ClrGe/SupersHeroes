@@ -13,7 +13,6 @@
 
     .left {
         align-items: center;
-        width: 100%;
         justify-content: center;
     }
 
@@ -31,13 +30,17 @@
     import {onMount} from "svelte";
     import {Events} from "$stores/stores.js";
     import MapboxGeocoder from "mapbox-gl-geocoder";
-import mapboxgl from "mapbox-gl";
+    import mapboxgl from "mapbox-gl";
 
     let formModal = false;
     let name;
     let email;
     let data = [];
     let group;
+    let lat = [];
+    let lng = [];
+
+
     let formEvent = {
         "incidentId": group,
         "heroId": 1,
@@ -51,15 +54,21 @@ import mapboxgl from "mapbox-gl";
         accessToken: mapboxgl.accessToken,
         types: 'country,region,place,postcode,locality,neighborhood'
     });
+
     onMount(async () => {
         const response = await fetch('http://localhost:5039/api/event');
         data = await response.json();
         console.log(data);
+        // for each event in the database, push the latitude and longitude to the lat and lng arrays
+        data.forEach((event) => {
+            lat.push(event.latitude);
+            lng.push(event.longitude);
+        });
+
         geocoder.addTo('#geocoder');
 
         // Get the geocoder results container.
         const results = document.getElementById('result');
-
 
         // Add geocoder result to container.
         geocoder.on('result', (e) => {
@@ -73,9 +82,8 @@ import mapboxgl from "mapbox-gl";
     });
 
     async function submitForm(){
-        // retrieve the value of "group" bound to radio
-
-
+        // retrieve the value of "group" bound to radio buttons and assign it to the formEvent object incidentId property
+        formEvent.incidentId = group;
         try {
             const response = await fetch('http://localhost:5039/api/event/add', {
                 method: 'POST',
@@ -90,11 +98,10 @@ import mapboxgl from "mapbox-gl";
             console.log(e);
         }
     }
-
 </script>
 
 <main class="h-full overflow-y-auto">
-    <div class="container  mx-auto ">
+    <div class="container   ">
 
         <!-- Modal to be populated on click -->
         <Modal autoclose={false} bind:open={formModal} class="w-full" id="form-modal" size="xs">
@@ -113,81 +120,81 @@ import mapboxgl from "mapbox-gl";
             </div>
         </Modal>
         <!-- Modal toggle -->
-        <div class="w-full mt-5 mr-auto ml-auto">
-        <Button class="!bg-red-400 w-full !text-black " on:click={() => formModal = true}>Signaler un incident</Button>
-        </div>
-        <Modal autoclose={false} bind:open={formModal} class="w-full" id="form-modal" size="xl">
-            <!-- Form -->
-            <div class="w-full overflow-hidden rounded-lg shadow-xs flex items-center ">
-                <form class="w-full p-5" id="form-event">
-                    <div class="flex flex-wrap -mx-3 mb-6">
+        <div class=" flex flex-col  ">
+            <Button class="!bg-red-400 w-full !text-black " on:click={() => formModal = true}>Signaler un incident</Button>
 
-                        <div class="w-full  px-3 mb-6 md:mb-0">
-                            <label class="block uppercase tracking-wide text-gray-700  dark:text-gray-100 text-xs font-bold mb-2"
-                                   for="grid-city">
-                                Ville
-                            </label>
-                            <input bind:value="{formEvent.city}"
-                                   class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                                   id="grid-city" placeholder="Gotham" type="text">
-                        </div>
-                        <label class="block uppercase tracking-wide text-gray-700  dark:text-gray-100 text-xs font-bold mb-2">
+            <Modal autoclose={false} bind:open={formModal} class="w-full" id="form-modal" size="xl">
+                <!-- Form -->
+                <div class="w-full overflow-hidden rounded-lg shadow-xs flex items-center ">
+                    <form class="w-full p-5" id="form-event">
+                        <div class="flex flex-wrap -mx-3 mb-6">
+
+                            <div class="w-full  px-3 mb-6 md:mb-0">
+                                <label class="block uppercase tracking-wide text-gray-700  dark:text-gray-100 text-xs font-bold mb-2"
+                                       for="grid-city">
+                                    Ville
+                                </label>
+                                <input bind:value="{formEvent.city}"
+                                       class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                                       id="grid-city" placeholder="Gotham" type="text">
+                            </div>
+                            <label class="block uppercase tracking-wide text-gray-700  dark:text-gray-100 text-xs font-bold mb-2">
                                 Type d'incident
                             </label>
 
-                        <div>
-                            <div class="flex items-center mb-2">
-                                <Radio bind:group id="incendies" value={1} class="text-gray-100 mr-2" >
-                                    Incendie
-                                </Radio>
-                            </div>
-                            <div class="flex items-center mb-2">
-                                <Radio bind:group id="route" value={2} class="text-gray-100 mr-2" >
-                                    Accident routier
-                                </Radio>
-                            </div>
-                            <div class="flex items-center mb-2">
-                                <Radio bind:group id="fleuve" value={3} class="text-gray-100 mr-2" >
-                                    Accident fluvial
-                                </Radio>
-                            </div>
-                            <div class="flex items-center">
-                                <Radio bind:group id="air" value={4} class="text-gray-100 mr-2" >
-                                    Accident aérien
-                                </Radio>
-                            </div>
-                            <div class="flex items-center">
-                                <Radio bind:group id="eboulement" value={5} class="text-gray-100 mr-2">
-                                    Éboulement
-                                </Radio>
-                            </div>
-                            <div class="flex items-center mb-2">
-                                <Radio bind:group id="serpents" value={6} class="text-gray-100 mr-2" >
-                                    Invasion de serpents
-                                </Radio>
-                            </div>
-                            <div class="flex items-center mb-2">
-                                <Radio id="gaz" bind:group value={7} class="text-gray-100 mr-2" >
-                                    Fuite de gaz
-                                </Radio>
-                            </div>
-                            <div class="flex items-center mb-2">
-                                <Radio bind:group id="manifestation" value={8} class="text-gray-100 mr-2">
-                                    Manifestation
-                                </Radio>
-                            </div>
-                            <div class="flex items-center">
-                                <Radio id="braquage" bind:group value={9} class="text-gray-100 mr-2" >
-                                    Braquage
-                                </Radio>
-                            </div>
-                            <div class="flex items-center">
-                                <Radio id="evasion" bind:group value={10} class="text-gray-100 mr-2" >
-                                    Évasion d'un prisonnier
-                                </Radio>
+                            <div>
+                                <div class="flex items-center mb-2">
+                                    <Radio bind:group class="text-gray-100 mr-2" id="incendies" value={1} >
+                                        Incendie
+                                    </Radio>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <Radio bind:group class="text-gray-100 mr-2" id="route" value={2} >
+                                        Accident routier
+                                    </Radio>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <Radio bind:group class="text-gray-100 mr-2" id="fleuve" value={3} >
+                                        Accident fluvial
+                                    </Radio>
+                                </div>
+                                <div class="flex items-center">
+                                    <Radio bind:group class="text-gray-100 mr-2" id="air" value={4} >
+                                        Accident aérien
+                                    </Radio>
+                                </div>
+                                <div class="flex items-center">
+                                    <Radio bind:group class="text-gray-100 mr-2" id="eboulement" value={5}>
+                                        Éboulement
+                                    </Radio>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <Radio bind:group class="text-gray-100 mr-2" id="serpents" value={6} >
+                                        Invasion de serpents
+                                    </Radio>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <Radio bind:group class="text-gray-100 mr-2" id="gaz" value={7} >
+                                        Fuite de gaz
+                                    </Radio>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <Radio bind:group class="text-gray-100 mr-2" id="manifestation" value={8}>
+                                        Manifestation
+                                    </Radio>
+                                </div>
+                                <div class="flex items-center">
+                                    <Radio bind:group class="text-gray-100 mr-2" id="braquage" value={9} >
+                                        Braquage
+                                    </Radio>
+                                </div>
+                                <div class="flex items-center">
+                                    <Radio bind:group class="text-gray-100 mr-2" id="evasion" value={10} >
+                                        Évasion d'un prisonnier
+                                    </Radio>
 
+                                </div>
                             </div>
-                        </div>
                         </div>
                         <div class="w-full  mb-12 md:mb-0">
                             <label
@@ -198,98 +205,75 @@ import mapboxgl from "mapbox-gl";
                             <input  bind:value="{formEvent.longitude}" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                     id="grid-long" placeholder="48.85667" type="text">
                         </div>
-                    <div class="w-full mb-12 md:mb-0">
-                        <label class="block uppercase tracking-wide text-gray-700  dark:text-gray-100 text-xs font-bold mb-2"
-                               for="grid-lat">
-                            Latitude
-                        </label>
-                        <input bind:value="{formEvent.latitude}"
-                               class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-                               id="grid-lat" placeholder="2.35222" type="text">
-                    </div>
-                    <button class="w-full" on:click={submitForm} type="submit">Ajouter</button>
-                </form>
-            </div>
+                        <div class="w-full mb-12 md:mb-0">
+                            <label class="block uppercase tracking-wide text-gray-700  dark:text-gray-100 text-xs font-bold mb-2"
+                                   for="grid-lat">
+                                Latitude
+                            </label>
+                            <input bind:value="{formEvent.latitude}"
+                                   class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                                   id="grid-lat" placeholder="2.35222" type="text">
+                        </div>
+                        <button class="w-full" on:click={submitForm} type="submit">Ajouter</button>
+                    </form>
+                </div>
 
-        </Modal>
-    <div class="pane left">
-        <div class="overflow-hidden rounded-lg shadow-xs flex flex-col left
-">
-            <div class="w-full overflow-x-auto">
-                <table class="whitespace-no-wrap">
-                    <thead>
-                    <tr
-                            class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800"
-                    >
-                        <th class="px-4 py-3">Nom</th>
-                        <th class="px-4 py-3">Téléphone</th>
-                        <th class="px-4 py-3">Email</th>
-                        <th class="px-4 py-3">Spécialités</th>
-                    </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
-                    {#each data as item (item.id)}
+            </Modal>
+            <table class="whitespace-no-wrap">
+                <thead>
+                <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800">
+                    <th class="px-4 py-3">Type d'incident</th>
+                    <th class="px-4 py-3">Ville</th>
+                    <th class="px-4 py-3">Longitude</th>
+                    <th class="px-4 py-3">Latitude</th>
+                    <th class="px-4 py-3">Statut</th>
+                </tr>
+                </thead>
+                <tbody class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
+                {#each data as item (item.id)}
+                    <tr class="text-gray-700 dark:text-gray-400">
+                        <td class="px-4 py-5">
 
-                        <tr class="text-gray-700 dark:text-gray-400">
-                            <td class="px-4 py-3">
-
-                                <div class="flex items-center text-sm">
-                                    <!-- Avatar with inset shadow -->
-                                    <div class="relative hidden w-8 h-8 mr-3 rounded-full md:block">
-                                        <img
-                                                alt=""
-                                                class="object-cover w-full h-full rounded-full"
-                                                loading="lazy"
-                                                src="https://cdn1.iconfinder.com/data/icons/people-avatars-10/24/people_avatar_head_criminal_robber_2-512.png"
-                                        />
-                                        <div aria-hidden="true" class="absolute inset-0 rounded-full shadow-inner"/>
-                                    </div>
-                                    <div>
-                                        <p class="font-semibold">{item.city}</p>
-                                    </div>
+                            <div class="flex items-center ">
+                                <!-- Avatar with inset shadow -->
+                                <div class="relative hidden w-8 h-8 mr-3 rounded-full md:block">
+                                    <img
+                                            alt=""
+                                            class="object-cover w-full h-full rounded-full"
+                                            loading="lazy"
+                                            src="https://i.pinimg.com/736x/ce/2c/55/ce2c55e441df83f7f1c01479538840b5.jpg"
+                                    />
+                                    <div aria-hidden="true" class="absolute inset-0 rounded-full shadow-inner"/>
                                 </div>
-
-                            </td>
-                            <td class="px-4 py-3 text-sm">{item.status}</td>
-                            <td class="px-4 py-3 text-xs">
-                <span
-                        class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100"
-                >
-                  {item.email}
-                </span>
-                            </td>
-                            <td class="px-4 py-3 text-sm"> Incendies</td>
-                        </tr>
-
-                    {/each}
-
-                    </tbody>
-                </table>
-            </div>
-            <div
-                    class="grid px-4 py-3 text-xs font-semibold tracking-wide text-gray-500 uppercase border-t dark:border-gray-700 bg-gray-50 sm:grid-cols-9 dark:text-gray-400 dark:bg-gray-800"
-            >
-                <span class="flex items-center col-span-3"></span>
-                <span class="col-span-2"/>
-                <!-- Pagination -->
-                <span class="flex col-span-4 mt-2 sm:mt-auto sm:justify-end">
-
-        </span>
-            </div>
+                                <div>
+                                    <td class="px-6 py-3 text-sm"> {item.incident}</td>
+                                </div>
+                                <div>
+                                    <p class="font-semibold">{item.city}</p>
+                                </div>
+                                <div>
+                                    <p class="px-6 py-3 text-sm">{item.longitude}</p>
+                                </div>
+                                <div>
+                                    <p class="px-6 py-3 text-sm">{item.latitude}</p>
+                                </div>
+                        </td>
+                        <td class="px-4 py-3 text-xs">
+                            <span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full dark:bg-green-700 dark:text-green-100">
+                                {item.status}
+                            </span>
+                        </td>
+                    </tr>
+                {/each}
+                </tbody>
+            </table>
         </div>
 
-        {#each data as item (item.id)}
-            <tr>
-                <td>{item.city}</td>
-                <td>{item.status}</td>
-            </tr>
-        {/each}
         <!---<List />--->
+        <div class="pane right">
+            <Map longitude={lng} latitude={lat} />
+        </div>
     </div>
-    <div class="pane right">
-        <Map />
-    </div>
-</div>
 </main>
 
 <!--<svelte:head>-->

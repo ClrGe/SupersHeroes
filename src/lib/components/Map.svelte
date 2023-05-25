@@ -1,7 +1,14 @@
 <style>
 
-    body { margin: 0; padding: 0; }
-    #map { position: absolute}
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    #map {
+        position: absolute
+    }
+
     #map {
         width: 50%;
         height: 100%;
@@ -17,6 +24,7 @@
         width: 20px;
         z-index: -1;
     }
+
     #geocoder-container > div {
         min-width: 50%;
         margin-left: 25%;
@@ -45,163 +53,156 @@
     import {activeMapItem} from '$stores/stores.js';
     import {onDestroy, onMount} from 'svelte';
     import {listItems} from '$stores/consts.js';
-    import mapboxSdk  from '@mapbox/mapbox-sdk/services/geocoding';
-    import  forwardGeocode from '@mapbox/mapbox-sdk/services/geocoding';
     import MapboxGeocoder from "mapbox-gl-geocoder";
     import 'mapbox-gl/dist/mapbox-gl.css';
 
     let map;
-
-    // function generateFeature({name, image, coordinates}, index) {
-    //     return {
-    //         type: 'Feature',
-    //         properties: {
-    //             description: `<img width="100%" src="${image}"/><b>${name}</b>`,
-    //             id: index
-    //         },
-    //         geometry: {
-    //             type: 'Point',
-    //             coordinates
-    //         }
-    //     };
-    // }
+    export let longitude;
+    export let latitude;
 
     onMount(async () => {
         mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_ACCESS_TOKEN;
 
+        // Create the map
+        map = new mapboxgl.Map({
+            accessToken: import.meta.env.VITE_MAPBOX_API_ACCESS_TOKEN,
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            // center: listItems[0].coordinates,
+            center: [-79.4512, 43.6568],
+            zoom: 13
+        });
 
-                // Create the map
-                map = new mapboxgl.Map({
+        map.on('load', function () {
+
+            map.addControl(
+                new MapboxGeocoder({
                     accessToken: import.meta.env.VITE_MAPBOX_API_ACCESS_TOKEN,
-                    container: 'map',
-                    style: 'mapbox://styles/mapbox/streets-v11',
-                    // center: listItems[0].coordinates,
-                    center: [-79.4512, 43.6568],
-                    zoom: 13
-                });
+                    mapboxgl: mapboxgl,
+                    marker: {
+                        color: 'orange'
+                    },
+                    flyTo: {
+                        zoom: 10,
+                    },
+                })
+            );
 
-                map.on('load', function () {
+            // add markers for each values in the arrays "latitude" and "longitude"
+            for (let i = 0; i < latitude.length; i++) {
+                new mapboxgl.Marker()
+                    .setLngLat([longitude[i], latitude[i]])
+                    .addTo(map);
+            }
 
-                    map.addControl(
-                        new MapboxGeocoder({
-                            accessToken: import.meta.env.VITE_MAPBOX_API_ACCESS_TOKEN,
-                            mapboxgl: mapboxgl,
-                            marker: {
-                                color: 'orange'
-                            },
-                            flyTo: {
-                                zoom: 10,
-                            },
-                        })
-                    );
-                    var marker = new mapboxgl.Marker();
-                    const popup = new mapboxgl.Popup({ closeOnClick: false })
 
-                    function add_marker (event) {
-                        var coordinates = event.lngLat;
-                        console.log('Lng: ' + coordinates.lng + '. Lat: ' + coordinates.lat);
-                        marker.setLngLat(coordinates).addTo(map);
-                        popup.setLngLat(coordinates) .setHTML(coordinates.lng, ' ', coordinates.lat).addTo(map);
-                    }
+            var marker = new mapboxgl.Marker();
+            const popup = new mapboxgl.Popup({closeOnClick: false})
 
-                    // add marker on right click
-                    map.on('contextmenu', add_marker);
+            function add_marker(event) {
+                var coordinates = event.lngLat;
+                console.log('Lng: ' + coordinates.lng + '. Lat: ' + coordinates.lat);
+                marker.setLngLat(coordinates).addTo(map);
+                popup.setLngLat(coordinates).setHTML(coordinates.lng, ' ', coordinates.lat).addTo(map);
+            }
 
-                    map.loadImage(
-                        'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',
-                        (error, image) => {
-                            if (error) throw error;
-                            map.addImage('custom-marker', image);
+            // add marker on right click
+            map.on('contextmenu', add_marker);
+
+            map.loadImage(
+                'https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png',
+                (error, image) => {
+                    if (error) throw error;
+                    map.addImage('custom-marker', image);
 // Add a GeoJSON source with 2 points
-                            map.addSource('points', {
-                                'type': 'geojson',
-                                'data': {
-                                    'type': 'FeatureCollection',
-                                    'features': [
-                                        {
+                    map.addSource('points', {
+                        'type': 'geojson',
+                        'data': {
+                            'type': 'FeatureCollection',
+                            'features': [
+                                {
 // feature for Mapbox DC
-                                            'type': 'Feature',
-                                            'geometry': {
-                                                'type': 'Point',
-                                                // coordinates from click event
-                                                'coordinates': [0, 0],
-                                            },
-                                            'properties': {
-                                                'title': 'Event',
-                                                'icon': 'monument'
-                                            },
-                                        },
-                                        {
-                                            'type': 'Feature',
-                                            'geometry': {
-                                                'type': 'Point',
-                                                'coordinates': [0, 0],
-                                            },
-                                            'properties': {
-                                                'title': 'Event',
-                                                'icon': 'harbor'
-                                            }
+                                    'type': 'Feature',
+                                    'geometry': {
+                                        'type': 'Point',
+                                        // coordinates from click event
+                                        'coordinates': [0, 0],
+                                    },
+                                    'properties': {
+                                        'title': 'Event',
+                                        'icon': 'monument'
+                                    },
+                                },
+                                {
+                                    'type': 'Feature',
+                                    'geometry': {
+                                        'type': 'Point',
+                                        'coordinates': [0, 0],
+                                    },
+                                    'properties': {
+                                        'title': 'Event',
+                                        'icon': 'harbor'
+                                    }
 
-                                        }
-                                    ]
                                 }
-                            });
-                            map.addLayer({
-                                'id': 'points',
-                                'type': 'symbol',
-                                'source': 'points',
-                                'layout': {
-                                    // get the icon name from the source's "icon" property
-                                    // concatenate the name to get an icon from the style's sprite sheet
-                                    'icon-image': ['concat', ['get', 'icon'], '-15'],
-                                    // get the title name from the source's "title" property
-                                    'text-field': ['get', 'title'],
-                                    'text-font': [
-                                        'Open Sans Semibold',
-                                        'Arial Unicode MS Bold'
-                                    ],
-                                    'text-offset': [0, 0.6],
-                                    'text-anchor': 'top'
-                                }
-                            });
-                            // display longitude and latitude when clicking on the map
-                            map.on('click', function (e) {
-                                document.getElementById('info').innerHTML =
-                                    // e.point is the x, y coordinates of the mousemove event relative
-                                    // to the top-left corner of the map
-                                    JSON.stringify(e.point) +
-                                    '<br />' +
-                                    // e.lngLat is the longitude, latitude geographical position of the event
-                                    JSON.stringify(e.lngLat.wrap());
-                            });
+                            ]
+                        }
+                    });
+                    map.addLayer({
+                        'id': 'points',
+                        'type': 'symbol',
+                        'source': 'points',
+                        'layout': {
+                            // get the icon name from the source's "icon" property
+                            // concatenate the name to get an icon from the style's sprite sheet
+                            'icon-image': ['concat', ['get', 'icon'], '-15'],
+                            // get the title name from the source's "title" property
+                            'text-field': ['get', 'title'],
+                            'text-font': [
+                                'Open Sans Semibold',
+                                'Arial Unicode MS Bold'
+                            ],
+                            'text-offset': [0, 0.6],
+                            'text-anchor': 'top'
+                        }
+                    });
+                    // display longitude and latitude when clicking on the map
+                    map.on('click', function (e) {
+                        document.getElementById('info').innerHTML =
+                            // e.point is the x, y coordinates of the mousemove event relative
+                            // to the top-left corner of the map
+                            JSON.stringify(e.point) +
+                            '<br />' +
+                            // e.lngLat is the longitude, latitude geographical position of the event
+                            JSON.stringify(e.lngLat.wrap());
+                    });
 
 
+                    // display popup when clicking a marker
+                    map.on('click', function (e) {
+                        var features = map.queryRenderedFeatures(e.point, {
+                            layers: ['points']
+                        });
+                        if (!features.length) {
+                            return;
+                        }
+                        var feature = features[0];
+                        // Populate the popup and set its coordinates
+                        // based on the feature found.
+                        var popup = new mapboxgl.Popup()
+                            .setLngLat(feature.geometry.coordinates)
+                            .setHTML(feature.properties.description)
+                            .addTo(map);
+                    });
+                    // Change the cursor to a pointer when the mouse is over the places layer.
+                    map.on('mouseenter', 'places', function () {
+                        map.getCanvas().style.cursor = 'pointer';
+                    });
 
-                            // display popup when clicking a marker
-                            map.on('click', function (e) {
-                                var features = map.queryRenderedFeatures(e.point, {
-                                    layers: ['points']
-                                });
-                                if (!features.length) {
-                                    return;
-                                }
-                                var feature = features[0];
-                                // Populate the popup and set its coordinates
-                                // based on the feature found.
-                                var popup = new mapboxgl.Popup()
-                                    .setLngLat(feature.geometry.coordinates)
-                                    .setHTML(feature.properties.description)
-                                    .addTo(map);
-                            });
-                                    // Change the cursor to a pointer when the mouse is over the places layer.
-                                    map.on('mouseenter', 'places', function () {
-                                        map.getCanvas().style.cursor = 'pointer';
-                                    });
-
-                                    // Change it back to a pointer when it leaves.
-                                    map.on('mouseleave', 'places', function () {
-                                        map.getCanvas().style.cursor = '';
-                                    });
+                    // Change it back to a pointer when it leaves.
+                    map.on('mouseleave', 'places', function () {
+                        map.getCanvas().style.cursor = '';
+                    });
 
 
 //                     mapRef.loadImage(
@@ -258,23 +259,23 @@
 //                     // Change it back to a pointer when it leaves.
 //                     mapRef.on('mouseleave', 'places', function () {
 //                         mapRef.getCanvas().style.cursor = '';
-                   });
-
                 });
 
-            });
-
-        // Update map center when active list item is updated via list
-        const unsubscribeActiveMapItem = activeMapItem.subscribe(newActiveMapItem => {
-            if (map) {
-                map.flyTo({
-                    center: listItems[newActiveMapItem].coordinates
-                });
-            }
         });
 
-        // Remove listener on unmount
-        onDestroy(unsubscribeActiveMapItem);
+    });
+
+    // Update map center when active list item is updated via list
+    const unsubscribeActiveMapItem = activeMapItem.subscribe(newActiveMapItem => {
+        if (map) {
+            map.flyTo({
+                center: listItems[newActiveMapItem].coordinates
+            });
+        }
+    });
+
+    // Remove listener on unmount
+    onDestroy(unsubscribeActiveMapItem);
 </script>
 
 
