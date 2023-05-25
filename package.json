@@ -58,6 +58,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@mapbox/mapbox-gl-geocoder": "^5.0.1",
 		"@mapbox/mapbox-sdk": "^0.15.1",
 		"@popperjs/core": "^2.11.7",
 		"axios": "^1.4.0",

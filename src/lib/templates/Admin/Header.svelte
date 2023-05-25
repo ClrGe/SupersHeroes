@@ -12,9 +12,33 @@
 	import { clickOutside } from '$lib/ioevents/click'
 	import { keydownEscape } from '$lib/ioevents/keydown'
 	import ToggleTheme from './ToggleTheme.svelte'
+	import {onMount} from "svelte";
+	import mapboxgl from "mapbox-gl/dist/mapbox-gl";
+	import MapboxGeocoder from "mapbox-gl-geocoder/lib";
 
 	export let user: any
 	let withSearch = true
+	mapboxgl.accessToken = 'pk.eyJ1IjoiY2xhaXJnZSIsImEiOiJjbGdxNmtiNTkwNmRmM2pzM3drbnA5a3h5In0.akdkLqiIt0WArmknZwTNCw';
+	const geocoder = new MapboxGeocoder({
+		accessToken: mapboxgl.accessToken,
+		types: 'country,region,place,postcode,locality,neighborhood'
+	});
+	onMount(async () => {
+		geocoder.addTo('#geocoder');
+
+		// Get the geocoder results container.
+		const results = document.getElementById('result');
+
+		// Add geocoder result to container.
+		geocoder.on('result', (e) => {
+			results.innerText = JSON.stringify(e.result, null, 2);
+		});
+
+		// Clear results container when search is cleared.
+		geocoder.on('clear', () => {
+			results.innerText = '';
+		});
+	});
 </script>
 
 <header class="z-10 py-4 bg-white shadow-md dark:bg-gray-800">
@@ -36,6 +60,7 @@
 				/>
 			</svg>
 		</button>
+
 		{#if withSearch}
 			<!-- Search input -->
 			<div class="flex justify-center flex-1 lg:mr-32">
@@ -52,7 +77,7 @@
 					<input
 						class="w-full pl-8 pr-2 py-2 text-sm text-gray-700 placeholder-gray-600 bg-gray-100 border-0 rounded-md dark:placeholder-gray-500 dark:focus:shadow-outline-gray dark:focus:placeholder-gray-600 dark:bg-gray-700 dark:text-gray-200 focus:placeholder-gray-500 focus:bg-white focus:border-purple-300 focus:outline-none focus:shadow-outline-purple form-input"
 						type="text"
-						placeholder="Search for Profiles (uid / email / username)"
+						placeholder="Chercher une adresse / ville / localité..."
 						aria-label="Search"
 					/>
 				</div>

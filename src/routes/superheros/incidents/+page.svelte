@@ -21,53 +21,81 @@
         justify-content: center;
         width: 100%;
     }
+
 </style>
 
 <script>
     import List from '$lib/components/List.svelte';
     import Map from '$lib/components/Map.svelte';
-    import {Button, Modal} from "flowbite-svelte";
+    import {Button, Modal, Radio} from "flowbite-svelte";
     import {onMount} from "svelte";
-    import {load} from "$src/routes/superheros/incidents/+page.js";
     import {Events} from "$stores/stores.js";
+    import MapboxGeocoder from "mapbox-gl-geocoder";
+import mapboxgl from "mapbox-gl";
 
-    let submitForm;
     let formModal = false;
-    let mapComponent;
     let name;
     let email;
-    let phone;
-
-    let data = {
-        "name": name || "Batman",
-        "incidentId": 1,
+    let data = [];
+    let group;
+    let formEvent = {
+        "incidentId": group,
         "heroId": 1,
         "city": "Gotham",
         "longitude": -74.0060152,
         "latitude": 40.7127281,
         "status": "pending",
     }
-
+    mapboxgl.accessToken = 'pk.eyJ1IjoiY2xhaXJnZSIsImEiOiJjbGdxNmtiNTkwNmRmM2pzM3drbnA5a3h5In0.akdkLqiIt0WArmknZwTNCw';
+    const geocoder = new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        types: 'country,region,place,postcode,locality,neighborhood'
+    });
     onMount(async () => {
+        const response = await fetch('http://localhost:5039/api/event');
+        data = await response.json();
+        console.log(data);
+        geocoder.addTo('#geocoder');
 
-        submitForm = async () => {
-            await load(data);
-        }
+        // Get the geocoder results container.
+        const results = document.getElementById('result');
+
+
+        // Add geocoder result to container.
+        geocoder.on('result', (e) => {
+            results.innerText = JSON.stringify(e.result, null, 2);
+        });
+
+        // Clear results container when search is cleared.
+        geocoder.on('clear', () => {
+            results.innerText = '';
+        });
     });
 
-    // GET the events and save as Events in the store
-    async function getEvents() {
-        const res = await fetch('http://localhost:5039/api/events');
-        const data = await res.json();
-        Events.set(data);
+    async function submitForm(){
+        // retrieve the value of "group" bound to radio
+
+
+        try {
+            const response = await fetch('http://localhost:5039/api/event/add', {
+                method: 'POST',
+                headers: {
+                    'Allow-Control-Allow-Origin': '*',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formEvent)
+            });
+            console.log(data);
+        } catch (e) {
+            console.log(e);
+        }
     }
-
-
 
 </script>
 
 <main class="h-full overflow-y-auto">
-    <div class="container  mx-auto grid">
+    <div class="container  mx-auto ">
+
         <!-- Modal to be populated on click -->
         <Modal autoclose={false} bind:open={formModal} class="w-full" id="form-modal" size="xs">
             <div class="modal-dialog" role="document">
@@ -85,13 +113,13 @@
             </div>
         </Modal>
         <!-- Modal toggle -->
-        <div>
-        <Button class="!bg-white !text-black " on:click={() => formModal = true}>Signaler un incident</Button>
+        <div class="w-full mt-5 mr-auto ml-auto">
+        <Button class="!bg-red-400 w-full !text-black " on:click={() => formModal = true}>Signaler un incident</Button>
         </div>
         <Modal autoclose={false} bind:open={formModal} class="w-full" id="form-modal" size="xl">
             <!-- Form -->
             <div class="w-full overflow-hidden rounded-lg shadow-xs flex items-center ">
-                <form class="w-full p-5" id="form-hero">
+                <form class="w-full p-5" id="form-event">
                     <div class="flex flex-wrap -mx-3 mb-6">
 
                         <div class="w-full  px-3 mb-6 md:mb-0">
@@ -99,55 +127,67 @@
                                    for="grid-city">
                                 Ville
                             </label>
-                            <input bind:value="{data.city}"
+                            <input bind:value="{formEvent.city}"
                                    class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                    id="grid-city" placeholder="Gotham" type="text">
                         </div>
-                            <label class="block uppercase tracking-wide text-gray-700  dark:text-gray-100 text-xs font-bold mb-2">
+                        <label class="block uppercase tracking-wide text-gray-700  dark:text-gray-100 text-xs font-bold mb-2">
                                 Type d'incident
                             </label>
-                            <div>
-                                <div class="flex items-center mb-2">
-                                    <input type="checkbox" id="incendies" class="text-gray-100 mr-2" />
-                                    <label for="incendies" class="text-gray-700  dark:text-gray-100">Incendie</label>
-                                </div>
-                                <div class="flex items-center mb-2">
-                                    <input type="checkbox" id="serpents" class="text-gray-100 mr-2" />
-                                    <label for="serpents"  class="text-gray-700  dark:text-gray-100">Invasion de serpents</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="eboulement" class="text-gray-100 mr-2" />
-                                    <label for="eboulement"  class="text-gray-700  dark:text-gray-100">Éboulement</label>
-                                </div>
-                                <div class="flex items-center mb-2">
-                                    <input type="checkbox" id="fleuve" class="text-gray-100 mr-2" />
-                                    <label for="fleuve"  class="text-gray-700  dark:text-gray-100">Accident fluvial</label>
-                                </div>
-                                <div class="flex items-center mb-2">
-                                    <input type="checkbox" id="route" class="text-gray-100 mr-2" />
-                                    <label for="route"  class="text-gray-700  dark:text-gray-100">Accident routier</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="air" class="text-gray-100 mr-2" />
-                                    <label for="air"  class="text-gray-700  dark:text-gray-100">Accident aérien</label>
-                                </div>
-                                <div class="flex items-center mb-2">
-                                    <input type="checkbox" id="manifestation" class="text-gray-100 mr-2" />
-                                    <label for="manifestation"  class="text-gray-700  dark:text-gray-100">Manifestation</label>
-                                </div>
-                                <div class="flex items-center mb-2">
-                                    <input type="checkbox" id="gaz" class="text-gray-100 mr-2" />
-                                    <label for="gaz"  class="text-gray-700  dark:text-gray-100">Fuite de gaz</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="braquage" class="text-gray-100 mr-2" />
-                                    <label for="braquage"  class="text-gray-700  dark:text-gray-100">Braquage</label>
-                                </div>
-                                <div class="flex items-center">
-                                    <input type="checkbox" id="evasion" class="text-gray-700  dark:text-gray-100 mr-2" />
-                                    <label for="evasion"  class="text-gray-700  dark:text-gray-100">Évasion d'un prisonnier</label>
-                                </div>
+
+                        <div>
+                            <div class="flex items-center mb-2">
+                                <Radio bind:group id="incendies" value={1} class="text-gray-100 mr-2" >
+                                    Incendie
+                                </Radio>
                             </div>
+                            <div class="flex items-center mb-2">
+                                <Radio bind:group id="route" value={2} class="text-gray-100 mr-2" >
+                                    Accident routier
+                                </Radio>
+                            </div>
+                            <div class="flex items-center mb-2">
+                                <Radio bind:group id="fleuve" value={3} class="text-gray-100 mr-2" >
+                                    Accident fluvial
+                                </Radio>
+                            </div>
+                            <div class="flex items-center">
+                                <Radio bind:group id="air" value={4} class="text-gray-100 mr-2" >
+                                    Accident aérien
+                                </Radio>
+                            </div>
+                            <div class="flex items-center">
+                                <Radio bind:group id="eboulement" value={5} class="text-gray-100 mr-2">
+                                    Éboulement
+                                </Radio>
+                            </div>
+                            <div class="flex items-center mb-2">
+                                <Radio bind:group id="serpents" value={6} class="text-gray-100 mr-2" >
+                                    Invasion de serpents
+                                </Radio>
+                            </div>
+                            <div class="flex items-center mb-2">
+                                <Radio id="gaz" bind:group value={7} class="text-gray-100 mr-2" >
+                                    Fuite de gaz
+                                </Radio>
+                            </div>
+                            <div class="flex items-center mb-2">
+                                <Radio bind:group id="manifestation" value={8} class="text-gray-100 mr-2">
+                                    Manifestation
+                                </Radio>
+                            </div>
+                            <div class="flex items-center">
+                                <Radio id="braquage" bind:group value={9} class="text-gray-100 mr-2" >
+                                    Braquage
+                                </Radio>
+                            </div>
+                            <div class="flex items-center">
+                                <Radio id="evasion" bind:group value={10} class="text-gray-100 mr-2" >
+                                    Évasion d'un prisonnier
+                                </Radio>
+
+                            </div>
+                        </div>
                         </div>
                         <div class="w-full  mb-12 md:mb-0">
                             <label
@@ -155,7 +195,7 @@
                                     for="grid-long">
                                 Longitude
                             </label>
-                            <input  bind:value="{data.longitude}" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            <input  bind:value="{formEvent.longitude}" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                     id="grid-long" placeholder="48.85667" type="text">
                         </div>
                     <div class="w-full mb-12 md:mb-0">
@@ -163,19 +203,88 @@
                                for="grid-lat">
                             Latitude
                         </label>
-                        <input bind:value="{data.latitude}"
+                        <input bind:value="{formEvent.latitude}"
                                class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                id="grid-lat" placeholder="2.35222" type="text">
                     </div>
                     <button class="w-full" on:click={submitForm} type="submit">Ajouter</button>
-
                 </form>
-
             </div>
 
         </Modal>
     <div class="pane left">
-        <List />
+        <div class="overflow-hidden rounded-lg shadow-xs flex flex-col left
+">
+            <div class="w-full overflow-x-auto">
+                <table class="whitespace-no-wrap">
+                    <thead>
+                    <tr
+                            class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800"
+                    >
+                        <th class="px-4 py-3">Nom</th>
+                        <th class="px-4 py-3">Téléphone</th>
+                        <th class="px-4 py-3">Email</th>
+                        <th class="px-4 py-3">Spécialités</th>
+                    </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y dark:divide-gray-700 dark:bg-gray-800">
+                    {#each data as item (item.id)}
+
+                        <tr class="text-gray-700 dark:text-gray-400">
+                            <td class="px-4 py-3">
+
+                                <div class="flex items-center text-sm">
+                                    <!-- Avatar with inset shadow -->
+                                    <div class="relative hidden w-8 h-8 mr-3 rounded-full md:block">
+                                        <img
+                                                alt=""
+                                                class="object-cover w-full h-full rounded-full"
+                                                loading="lazy"
+                                                src="https://cdn1.iconfinder.com/data/icons/people-avatars-10/24/people_avatar_head_criminal_robber_2-512.png"
+                                        />
+                                        <div aria-hidden="true" class="absolute inset-0 rounded-full shadow-inner"/>
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold">{item.city}</p>
+                                    </div>
+                                </div>
+
+                            </td>
+                            <td class="px-4 py-3 text-sm">{item.status}</td>
+                            <td class="px-4 py-3 text-xs">
+                <span
+                        class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100"
+                >
+                  {item.email}
+                </span>
+                            </td>
+                            <td class="px-4 py-3 text-sm"> Incendies</td>
+                        </tr>
+
+                    {/each}
+
+                    </tbody>
+                </table>
+            </div>
+            <div
+                    class="grid px-4 py-3 text-xs font-semibold tracking-wide text-gray-500 uppercase border-t dark:border-gray-700 bg-gray-50 sm:grid-cols-9 dark:text-gray-400 dark:bg-gray-800"
+            >
+                <span class="flex items-center col-span-3"></span>
+                <span class="col-span-2"/>
+                <!-- Pagination -->
+                <span class="flex col-span-4 mt-2 sm:mt-auto sm:justify-end">
+
+        </span>
+            </div>
+        </div>
+
+        {#each data as item (item.id)}
+            <tr>
+                <td>{item.city}</td>
+                <td>{item.status}</td>
+            </tr>
+        {/each}
+        <!---<List />--->
     </div>
     <div class="pane right">
         <Map />

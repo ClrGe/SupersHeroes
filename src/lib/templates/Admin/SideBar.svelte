@@ -30,7 +30,7 @@
 	export let links = [
 		{
 			name: 'Accueil',
-			url: '/',
+			url: '/incidents',
 			svg: [
 				'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
 			]
@@ -56,7 +56,7 @@
 				'M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z'
 			],
 			sublinks: [
-				{ name: 'Login', url: import.meta.env.VITE_LOGIN_PATH },
+				{ name: 'Connexion Ville', url: import.meta.env.VITE_LOGIN_PATH },
 				{ name: 'Register', url: '/register' },
 				{ name: 'Forgot Password', url: '/forgot-password' },
 				{ name: '404', url: '/this-page-does-not-exists-at-all' }
