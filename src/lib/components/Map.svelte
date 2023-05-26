@@ -60,6 +60,30 @@
     export let longitude;
     export let latitude;
 
+    export let latHero;
+    export let longHero;
+
+    const calculateDistance = (latitude1, longitude1, latitude2, longitude2) => {
+        const earthRadius = 6371; // Radius of the Earth in kilometers
+        const lat1Rad = toRadians(latitude1);
+        const lat2Rad = toRadians(latitude2);
+        const latDiffRad = toRadians(latitude2 - latitude1);
+        const lngDiffRad = toRadians(longitude2 - longitude1);
+
+        const a =
+            Math.sin(latDiffRad / 2) ** 2 +
+            Math.cos(lat1Rad) *
+            Math.cos(lat2Rad) *
+            Math.sin(lngDiffRad / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return earthRadius * c;
+    };
+
+    const toRadians = (degrees) => {
+        return (degrees * Math.PI) / 180;
+    };
+
     onMount(async () => {
         mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_ACCESS_TOKEN;
 
@@ -90,20 +114,124 @@
 
             // add markers for each values in the arrays "latitude" and "longitude"
             for (let i = 0; i < latitude.length; i++) {
-                new mapboxgl.Marker()
+                new mapboxgl.Marker({color: 'red'})
                     .setLngLat([longitude[i], latitude[i]])
                     .addTo(map);
             }
 
+            // add markers for each values in the arrays "latHero" and "longHero"
+            for (let i = 0; i < latHero.length; i++) {
+                new mapboxgl.Marker({color: 'yellow'})
+                    .setLngLat([longHero[i], latHero[i]])
+                    .addTo(map);
+            }
+
+            // add control to navigate to user location
+            map.addControl(
+                new mapboxgl.GeolocateControl({
+                    positionOptions: {
+                        enableHighAccuracy: true
+                    },
+                    trackUserLocation: true
+                           })
+            );
 
             var marker = new mapboxgl.Marker();
             const popup = new mapboxgl.Popup({closeOnClick: false})
-
+            let eventId;
+            let data = [];
+            let radioEvent = {
+                "incidentId": eventId,
+                "heroId": 1,
+                "city": "Gotham",
+                "longitude": -74.0060152,
+                "latitude": 40.7127281,
+                "status": "pending",
+            }
+            async function submitRadio(){
+                // retrieve the value of "group" bound to radio buttons and assign it to the formEvent object incidentId property
+                radioEvent.incidentId = eventId;
+                try {
+                    const response = await fetch('http://localhost:5039/api/event/add', {
+                        method: 'POST',
+                        headers: {
+                            'Allow-Control-Allow-Origin': '*',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(radioEvent)
+                    });
+                    console.log(data);
+                } catch (e) {
+                    console.log(e);
+                }
+            }
             function add_marker(event) {
                 var coordinates = event.lngLat;
-                console.log('Lng: ' + coordinates.lng + '. Lat: ' + coordinates.lat);
                 marker.setLngLat(coordinates).addTo(map);
-                popup.setLngLat(coordinates).setHTML(coordinates.lng, ' ', coordinates.lat).addTo(map);
+                popup.setLngLat(coordinates).setHTML(
+                    '                <div class="w-full overflow-hidden rounded-lg shadow-xs flex items-center ">\n' +
+                    '                    <form class="w-full p-5" id="form-event">\n' +
+                    '                        <div class="flex flex-wrap -mx-3 mb-6">\n' +
+                    '                            <label class="block uppercase tracking-wide text-gray-700  dark:text-gray-100 text-xs font-bold mb-2">\n' +
+                    '                                Type d\'incident\n' +
+                    '                            </label>\n' +
+                    '                            <div>\n' +
+                    '                                <div class="flex items-center mb-2">\n' +
+                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="incendies" value={1} >\n' +
+                    '                                        Incendie\n' +
+                    '                                    </input>\n' +
+                    '                                </div>\n' +
+                    '                                <div class="flex items-center mb-2">\n' +
+                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="route" value={2} >\n' +
+                    '                                        Accident routier\n' +
+                    '                                    </input>\n' +
+                    '                                </div>\n' +
+                    '                                <div class="flex items-center mb-2">\n' +
+                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="fleuve" value={3} >\n' +
+                    '                                        Accident fluvial\n' +
+                    '                                    </input>\n' +
+                    '                                </div>\n' +
+                    '                                <div class="flex items-center">\n' +
+                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="air" value={4} >\n' +
+                    '                                        Accident aérien\n' +
+                    '                                    </input>\n' +
+                    '                                </div>\n' +
+                    '                                <div class="flex items-center">\n' +
+                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="eboulement" value={5}>\n' +
+                    '                                        Éboulement\n' +
+                    '                                    </input>\n' +
+                    '                                </div>\n' +
+                    '                                <div class="flex items-center mb-2">\n' +
+                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="serpents" value={6} >\n' +
+                    '                                        Invasion de serpents\n' +
+                    '                                    </input>\n' +
+                    '                                </div>\n' +
+                    '                                <div class="flex items-center mb-2">\n' +
+                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="gaz" value={7} >\n' +
+                    '                                        Fuite de gaz\n' +
+                    '                                    </input>\n' +
+                    '                                </div>\n' +
+                    '                                <div class="flex items-center mb-2">\n' +
+                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="manifestation" value={8}>\n' +
+                    '                                        Manifestation\n' +
+                    '                                    </input>\n' +
+                    '                                </div>\n' +
+                    '                                <div class="flex items-center">\n' +
+                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="braquage" value={9} >\n' +
+                    '                                        Braquage\n' +
+                    '                                    </input>\n' +
+                    '                                </div>\n' +
+                    '                                <div class="flex items-center">\n' +
+                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="evasion" value={10} >\n' +
+                    '                                        Évasion d\'un prisonnier\n' +
+                    '                                    </input>\n' +
+                    '                                </div>\n' +
+                    '                            </div>\n' +
+                    '                        </div>\n' +
+                    '                        </div>\n' +
+                    '                        <button class="w-full" on:click={submitRadio} type="submit">Ajouter</button>\n' +
+                    '                    </form>\n' +
+                    '                </div>\n').addTo(map);
             }
 
             // add marker on right click
@@ -169,14 +297,10 @@
                     // display longitude and latitude when clicking on the map
                     map.on('click', function (e) {
                         document.getElementById('info').innerHTML =
-                            // e.point is the x, y coordinates of the mousemove event relative
-                            // to the top-left corner of the map
                             JSON.stringify(e.point) +
                             '<br />' +
-                            // e.lngLat is the longitude, latitude geographical position of the event
                             JSON.stringify(e.lngLat.wrap());
                     });
-
 
                     // display popup when clicking a marker
                     map.on('click', function (e) {
@@ -203,66 +327,8 @@
                     map.on('mouseleave', 'places', function () {
                         map.getCanvas().style.cursor = '';
                     });
-
-
-//                     mapRef.loadImage(
-//                         'https://cdn3.iconfinder.com/data/icons/funky/136/Fire-512.png',
-//                         (error, image) => {
-//                             if (error) throw error;
-//
-// // Add the image to the map style.
-//                             mapRef.addImage('fire', image);
-//                         }
-//                     );
-//                     // Add markers to map
-//                     mapRef.addLayer({
-//                         id: 'places',
-//                         type: 'symbol',
-//                         source: {
-//                             type: 'geojson',
-//                             data: {
-//                                 type: 'FeatureCollection',
-//                                 features: listItems.map(generateFeature)
-//                             }
-//                         },
-//                         layout: {
-//                             'icon-image': 'fire',
-//                             'icon-size': 0.1,
-//                             'icon-allow-overlap': true
-//                         }
-//                     });
-//
-//                     // When clicking on a map marker
-//                     mapRef.on('click', 'places', function (e) {
-//                         const coordinates = e.features[0].geometry.coordinates.slice();
-//                         const description = e.features[0].properties.description;
-//
-// // Ensure that if the map is zoomed out such that multiple
-// // copies of the feature are visible, the popup appears
-// // over the copy being pointed to.
-//                         while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-//                             coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-//                         }
-//
-//                         // Show popup
-//                         new mapboxgl.Popup()
-//                             .setLngLat(coordinates)
-//                             .setHTML(description)
-//                             .addTo(mapRef);
-//                     });
-//
-//                     // Change the cursor to a pointer when the mouse is over the places layer.
-//                     mapRef.on('mouseenter', 'places', function () {
-//                         mapRef.getCanvas().style.cursor = 'pointer';
-//                     });
-//
-//                     // Change it back to a pointer when it leaves.
-//                     mapRef.on('mouseleave', 'places', function () {
-//                         mapRef.getCanvas().style.cursor = '';
                 });
-
         });
-
     });
 
     // Update map center when active list item is updated via list

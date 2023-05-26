@@ -3,6 +3,8 @@
     import {onDestroy, onMount} from "svelte";
     import {api} from "../../api.ts";
     let data = [];
+    let incidentData = [];
+
     function onReady() {
         mapComponent.flyTo({center: [40.7127281, -74.0060152]})
     }
@@ -11,9 +13,7 @@
     let name;
     let email;
     let phone;
-    let incident1;
-    let incident2;
-    let incident3;
+
 
     let formHero = {
         "name": name || "Batman",
@@ -22,7 +22,8 @@
         "city": "Gotham",
         "longitude": -74.0060152,
         "latitude": 40.7127281,
-        "incidentId": []
+        "incidentId": [],
+        "incidentName": []
     }
     // unchecked if more than 3 checkboxes are checked
     onMount(async () => {
@@ -30,7 +31,20 @@
         data = await response.json();
         console.log(data);
         await import('leaflet');
+        const incidentResponse = await fetch('http://localhost:5039/api/incident');
+        incidentData = await incidentResponse.json();
+        // where incidentData.id = data.incidentId push the incidentData.name in the data instance
+        for (let i = 0; i < data.length; i++) {
+            for (let j = 0; j < incidentData.length; j++) {
+               for (let k = 0; k < data[i].incidentId.length; k++) {
+                   if (data[i].incidentId[k] === incidentData[j].id) {
+                       data[i].incidentId[k] = incidentData[j].title;
+                   }
+               }
+            }
+        }
 
+        console.log(incidentData);
         // if more than 3 checkboxes are checked, uncheck the last one and show an alert
         function handleCheckboxClick(event) {
             const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
@@ -56,8 +70,6 @@
             for (let i = 0; i < checkboxes.length; i++) {
                 formHero.incidentId.push(checkboxes[i].value);
             }
-
-
             const response = await fetch('http://localhost:5039/api/hero/add', {
                 method: 'POST',
                 headers: {
@@ -96,16 +108,10 @@
     </Modal>
     <!-- Modal toggle -->
     <div class="flex justify-end">
-        <button
-                class="px-4 py-2 my-3 mr-3 font-semibold text-white bg-green-500 rounded hover:bg-blue-700"
-                onclick="window.location.reload();">
-            <!-- add + icon  -->
-            Ajouter un Super Héros<
-        </button>
-    </div>
-    <img class="w-6 h-6" src="https://www.totstoo.com/wp-content/themes/totstoo-responsive/img/icons/icon_distance_from_medical.png"/>
 
-    <Button class="!bg-white !text-black " on:click={() => formModal = true}>Ajouter un Super Héros</Button>
+            <Button class="!bg-red-400 px-4 py-2 my-3 mr-3 font-semibold " on:click={() => formModal = true}>+ Ajouter un Super Héros</Button>
+        <Button class="!bg-green-400 px-4 py-2 my-3 mr-3 font-semibold " on:click={() => window.location.reload()}>Rafraichir</Button>
+    </div>
     <Modal autoclose={false} bind:open={formModal} class="w-full" id="form-modal" size="xl">
 
         <!-- Form -->
@@ -263,13 +269,7 @@
     <div class="w-full overflow-hidden rounded-lg shadow-xs">
         <div class="w-full overflow-x-auto">
             <!--- button to reload the table -->
-            <div class="flex justify-end">
-                <button
-                        class="px-4 py-2 my-3 mr-3 font-semibold text-white bg-blue-500 rounded hover:bg-blue-700"
-                        onclick="window.location.reload();">
-                    Rafraichir
-                </button>
-            </div>
+
         <table class="w-full whitespace-no-wrap">
             <thead>
             <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800"
@@ -309,27 +309,50 @@
                   {item.email}
                 </span>
                         </td>
-                        <td class="px-4 py-3 text-sm"> Incendies</td>
+
                         <!-- Display the incidents Ids from array item.incidentID[] -->
                         <td class="px-4 py-3">
                             {#if item.incidentId }
                             {#each item.incidentId as incident (incident)}
-                                <span
-                                        class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100"
-                                >
-                                    {incident}
-                                </span>
+                                {#if incident == 1}
+                                <span class="px-2 py-1 font-semibold leading-tight text-red-700 bg-red-100 rounded-full dark:bg-green-700 dark:text-green-100">Incendies</span>
+                                {/if}
+                                {#if incident == 2}
+                                <span class="px-2 py-1 font-semibold leading-tight text-amber-700 bg-amber-100 rounded-full dark:bg-green-700 dark:text-green-100">Accidents de la route</span>
+                                {/if}
+                                {#if incident == 3}
+                                <span class="px-2 py-1 font-semibold leading-tight  text-blue-700 bg-blue-100  rounded-full dark:bg-green-700 dark:text-green-100">Accidents fluviaux</span>
+                                {/if}
+                                {#if incident == 4}
+                                <span class="px-2 py-1 font-semibold leading-tight text-gray-700 bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-100">Accidents aériens</span>
+                                {/if}
+                                {#if incident == 5}
+                                <span class="px-2 py-1 font-semibold leading-tight text-amber-700 bg-amber-100 rounded-full dark:bg-amber-700 dark:text-amber-100">Éboulements</span>
+                                {/if}
+                                {#if incident == 6}
+                                <span class="px-2 py-1 font-semibold leading-tight text-green-700 bg-green-100 rounded-full dark:bg-green-700 dark:text-green-100">Invasions de serpents</span>
+                                {/if}
+                                {#if incident == 7}
+                                <span class="px-2 py-1 font-semibold leading-tight text-yellow-700 bg-yellow-100 rounded-full dark:bg-yellow-700 dark:text-yellow-100">Fuite de gaz</span>
+                                {/if}
+                                {#if incident == 8}
+                                <span class="px-2 py-1 font-semibold leading-tight text-red-900 bg-red-100 rounded-full dark:bg-red-700 dark:text-red-100">Manifestations</span>
+                                {/if}
+                                {#if incident == 9}
+                                <span class="px-2 py-1 font-semibold leading-tight text-purple-700 bg-purple-100 rounded-full dark:bg-purple-700 dark:text-purple-100">Braquages</span>
+                                {/if}
+                                {#if incident == 10}
+                                <span class="px-2 py-1 font-semibold leading-tight text-indigo-700 bg-indigo-100 rounded-full dark:bg-indigo-700 dark:text-indigo-100">Évasions de prisonniers</span>
+                                {/if}
+
                             {/each}
+
                             {/if}
                         </td>
-
                     </tr>
-
                 {/each}
-
-                </tbody>
-            </table>
-        </div>
+            </tbody>
+        </table>
         <div
                 class="grid px-4 py-3 text-xs font-semibold tracking-wide text-gray-500 uppercase border-t dark:border-gray-700 bg-gray-50 sm:grid-cols-9 dark:text-gray-400 dark:bg-gray-800"
         >
@@ -340,6 +363,7 @@
 
         </span>
         </div>
+    </div>
     </div>
 </main>
 
