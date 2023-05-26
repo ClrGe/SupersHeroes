@@ -30,7 +30,6 @@
         bottom: 0;
         position: absolute;
     }
-
     #info {
         display: table;
         position: relative;
@@ -54,6 +53,7 @@
     import {listItems} from '$stores/consts.js';
     import MapboxGeocoder from "mapbox-gl-geocoder";
     import 'mapbox-gl/dist/mapbox-gl.css';
+    import {Modal, Radio} from "flowbite-svelte";
 
     let map;
     export let longitude;
@@ -62,6 +62,54 @@
     export let latHero;
     export let longHero;
 
+    let ltClick = 0;
+    let lgClick = 0;
+    export let group;
+    export let formModal;
+    let formEvent = {
+        "incidentId": group,
+        "heroId": 1,
+        "longitude": -74.0060152,
+        "latitude": 40.7127281,
+        "status": "pending",
+    }
+    async function submitForm(){
+        // retrieve the value of "group" bound to radio buttons and assign it to the formEvent object incidentId property
+        formEvent.incidentId = group;
+        formEvent.latitude = ltClick;
+        formEvent.longitude = lgClick;
+        try {
+            const response = await fetch('http://localhost:5039/api/event/add', {
+                method: 'POST',
+                headers: {
+                    'Allow-Control-Allow-Origin': '*',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formEvent)
+            });
+            console.log(data);
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+
+    const calculateDistance = (latitude1, longitude1, latitude2, longitude2) => {
+        const earthRadius = 6371; // Radius of the Earth in kilometers
+        const lat1Rad = toRadians(latitude1);
+        const lat2Rad = toRadians(latitude2);
+        const latDiffRad = toRadians(latitude2 - latitude1);
+        const lngDiffRad = toRadians(longitude2 - longitude1);
+
+        const a =
+            Math.sin(latDiffRad / 2) ** 2 +
+            Math.cos(lat1Rad) *
+            Math.cos(lat2Rad) *
+            Math.sin(lngDiffRad / 2) ** 2;
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return earthRadius * c;
+    };
     let data = [];
     let eventId = activeMapItem;
     let radioEvent = {
@@ -78,7 +126,7 @@
 
     onMount(async () => {
 
-        async function submitRadio(){
+        async function submitRadio() {
             // retrieve the value of "group" bound to radio buttons and assign it to the formEvent object incidentId property
             radioEvent.incidentId = eventId;
             try {
@@ -96,6 +144,7 @@
             }
         }
 
+
         mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_ACCESS_TOKEN;
 
         // Create the map
@@ -103,8 +152,7 @@
             accessToken: import.meta.env.VITE_MAPBOX_API_ACCESS_TOKEN,
             container: 'map',
             style: 'mapbox://styles/mapbox/streets-v11',
-            // center: listItems[0].coordinates,
-            center: [-74.0060152, 40.7127281],
+            center: [1.0898638503974212, 49.43746834326285],
             zoom: 7
         });
 
@@ -130,127 +178,15 @@
                     .addTo(map);
             }
 
-            // add source and layer for the hero markers with values from the arrays "latHero" and "longHero"
-            map.addSource('heroes', {
-                type: 'geojson',
-                data: {
-                    type: 'FeatureCollection',
-                    properties: {
-                        // display values from the heroesList object looking for the incidentId matching the eventId
-                        title: '',
-                        description: 'Heroes',
-                        'marker-color': '#3bb2d0',
-                        'marker-size': 'large',
-                        'marker-symbol': 'rocket'
-                    },
-                    features: latHero.map((lat, i) => ({
-                        type: 'Feature',
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [longHero[i], lat]
-                        }
-                    }))
-                }
-            });
 
-            map.addLayer({
-                id: 'heroes',
-                type: 'symbol',
-                source: 'heroes',
-                layout: {
-                    'icon-image': 'rocket-15',
-                    'icon-allow-overlap': true
-                }
-            });
-
-
-
-            // add source and layer for the incident markers with values from the arrays "latitude" and "longitude"
-            map.addSource('incidents', {
-                type: 'geojson',
-                data: {
-                    type: 'FeatureCollection',
-                    properties: {
-                        title: 'Incidents',
-                        description: 'Incidents',
-                        'marker-color': '#3bb2d0',
-                        'marker-size': 'large',
-                        'marker-symbol': 'rocket'
-                    },
-                    features: latitude.map((lat, i) => ({
-                        type: 'Feature',
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [longitude[i], lat]
-                        }
-                    }))
-                }
-            });
-
-            map.addLayer({
-                id: 'incidents',
-                type: 'symbol',
-                source: 'incidents',
-                layout: {
-                    'icon-image': 'rocket-15',
-                    'icon-allow-overlap': true
-                }
-            });
-
-            // add popup source and layer for the incident markers
-            map.addSource('incidents-popup', {
-                type: 'geojson',
-                data: {
-                    type: 'FeatureCollection',
-                    properties: {
-                        title: 'Incidents',
-                        description: 'Incidents',
-                        'marker-color': '#3bb2d0',
-                        'marker-size': 'large',
-                        'marker-symbol': 'rocket'
-                    },
-                    features: latitude.map((lat, i) => ({
-                        type: 'Feature',
-                        geometry: {
-                            type: 'Point',
-                            coordinates: [longitude[i], lat]
-                        }
-                    }))
-                }
-            });
-            // add popup layer for the incident markers
-            map.addLayer({
-                id: 'incidents-popup',
-                type: 'symbol',
-                source: 'incidents-popup',
-                layout: {
-                    'icon-image': 'rocket-15',
-                    'icon-allow-overlap': true
-                }
-            });
-
-
-
-
-            });
-
-        map.on('mouseenter', 'incidents', function (e) {
-            // display a 50km radius circle around the marker when clicking it
-            map.addSource('circle', {
-                type: 'geojson',
-                data: {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Point',
-                        coordinates: e.features[0].geometry.coordinates
-                    }
-                }
-            });
-            map.flyTo({
-                center: e.features[0].geometry.coordinates,
-                zoom: 10
-            });
             // add markers for each values in the arrays "latHero" and "longHero"
+            for (let i = 0; i < latHero.length; i++) {
+                new mapboxgl.Marker({color: 'yellow'})
+                    .setLngLat([longHero[i], latHero[i]])
+                    .addTo(map);
+            }
+
+            // display point  for each values in the arrays "latHero" and "longHero"
             for (let i = 0; i < latHero.length; i++) {
                 new mapboxgl.Marker({color: 'yellow'})
                     .setLngLat([longHero[i], latHero[i]])
@@ -264,86 +200,23 @@
                         enableHighAccuracy: true
                     },
                     trackUserLocation: true
-                           })
+                })
             );
 
             var marker = new mapboxgl.Marker();
             const popup = new mapboxgl.Popup({closeOnClick: true})
-            const detailsMarkerPopup = new mapboxgl.Popup({closeOnClick: true})
 
             let eventId;
 
             function add_marker(event) {
-                var coordinates = event.lngLat;
                 formModal = true;
+                var coordinates = event.lngLat;
+                lgClick = coordinates.lng;
+                ltClick = coordinates.lat;
+
                 marker.setLngLat(coordinates).addTo(map);
-                popup.setLngLat(coordinates).setHTML(
-                    '                <div class="w-full overflow-hidden rounded-lg shadow-xs flex items-center ">\n' +
-                    '                    <form class="w-full p-5" id="form-event">\n' +
-                    '                        <div class="flex flex-wrap -mx-3 mb-6">\n' +
-                    '                            <label class="block uppercase tracking-wide text-gray-700  dark:text-gray-100 text-xs font-bold mb-2">\n' +
-                    '                                Type d\'incident\n' +
-                    '                            </label>\n' +
-                    '                            <div>\n' +
-                    '                                <div class="flex items-center mb-2">\n' +
-                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="incendies" value={1} >\n' +
-                    '                                        Incendie\n' +
-                    '                                    </input>\n' +
-                    '                                </div>\n' +
-                    '                                <div class="flex items-center mb-2">\n' +
-                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="route" value={2} >\n' +
-                    '                                        Accident routier\n' +
-                    '                                    </input>\n' +
-                    '                                </div>\n' +
-                    '                                <div class="flex items-center mb-2">\n' +
-                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="fleuve" value={3} >\n' +
-                    '                                        Accident fluvial\n' +
-                    '                                    </input>\n' +
-                    '                                </div>\n' +
-                    '                                <div class="flex items-center">\n' +
-                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="air" value={4} >\n' +
-                    '                                        Accident aérien\n' +
-                    '                                    </input>\n' +
-                    '                                </div>\n' +
-                    '                                <div class="flex items-center">\n' +
-                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="eboulement" value={5}>\n' +
-                    '                                        Éboulement\n' +
-                    '                                    </input>\n' +
-                    '                                </div>\n' +
-                    '                                <div class="flex items-center mb-2">\n' +
-                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="serpents" value={6} >\n' +
-                    '                                        Invasion de serpents\n' +
-                    '                                    </input>\n' +
-                    '                                </div>\n' +
-                    '                                <div class="flex items-center mb-2">\n' +
-                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="gaz" value={7} >\n' +
-                    '                                        Fuite de gaz\n' +
-                    '                                    </input>\n' +
-                    '                                </div>\n' +
-                    '                                <div class="flex items-center mb-2">\n' +
-                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="manifestation" value={8}>\n' +
-                    '                                        Manifestation\n' +
-                    '                                    </input>\n' +
-                    '                                </div>\n' +
-                    '                                <div class="flex items-center">\n' +
-                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="braquage" value={9} >\n' +
-                    '                                        Braquage\n' +
-                    '                                    </input>\n' +
-                    '                                </div>\n' +
-                    '                                <div class="flex items-center">\n' +
-                    '                                    <input type="radio" bind:eventId class="text-gray-100 mr-2" id="evasion" value={10} >\n' +
-                    '                                        Évasion d\'un prisonnier\n' +
-                    '                                    </input>\n' +
-                    '                                </div>\n' +
-                    '                            </div>\n' +
-                    '                        </div>\n' +
-                    '                        </div>\n' +
-                    '                        <button class="w-full" on:click={submitRadio} type="submit">Ajouter</button>\n' +
-                    '                    </form>\n' +
-                    '                </div>\n').addTo(map);
+
             }
-
-
 
 
             // add marker on right click
@@ -406,23 +279,6 @@
                             'text-anchor': 'top'
                         }
                     });
-                    // display a 50km radius circle around the marker when clicking it
-                    map.on('click', 'points', function (e) {
-                        var coordinates = e.features[0].geometry.coordinates.slice();
-                        var description = e.features[0].properties.description;
-                        // Ensure that if the map is zoomed out such that multiple
-                        // copies of the feature are visible, the popup appears
-                        // over the copy being pointed to.
-                        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
-                            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
-                        }
-                        new mapboxgl.Popup()
-                            .setLngLat(coordinates)
-                            .setHTML(description)
-                            .addTo(map);
-                    });
-
-                    // display popup when clicking a marker
                     map.on('click', function (e) {
                         var features = map.queryRenderedFeatures(e.point, {
                             layers: ['points']
@@ -448,10 +304,9 @@
                         map.getCanvas().style.cursor = '';
                     });
                 });
+
         });
-
     });
-
     // Update map center when active list item is updated via list
     const unsubscribeActiveMapItem = activeMapItem.subscribe(newActiveMapItem => {
         if (map) {
@@ -460,10 +315,101 @@
             });
         }
     });
+    // add markers for each values in the arrays "latitude" and "longitude"
+    for (let i = 0; i < latitude.length; i++) {
+        new mapboxgl.Marker({color: 'red'})
+            .setLngLat([longitude[i], latitude[i]])
+            .addTo(map);
+    }
 
-    // Remove listener on unmount
-    onDestroy(unsubscribeActiveMapItem);
+
+    // add markers for each values in the arrays "latHero" and "longHero"
+    for (let i = 0; i < latHero.length; i++) {
+        new mapboxgl.Marker({color: 'yellow'})
+            .setLngLat([longHero[i], latHero[i]])
+            .addTo(map);
+    }
+
+    //
 </script>
+
+<Modal autoclose={false} bind:open={formModal} class="w-full" id="form-modal" size="xl">
+    <div class="w-full overflow-hidden rounded-lg shadow-xs flex items-center ">
+        <form class="w-full p-5" id="form-event">
+            <div class="flex flex-col -mx-3 mb-6">
+                <label class="block uppercase tracking-wide text-gray-700  dark:text-gray-100 text-xs font-bold mb-2">
+                    Type d'incident
+                </label>
+                <div class="flex items-center mb-2">
+                    <Radio bind:group class="text-gray-100 mr-2" id="incendies" value={1} >
+                        Incendie
+                    </Radio>
+                </div>
+                <div class="flex items-center mb-2">
+                    <Radio bind:group class="text-gray-100 mr-2" id="route" value={2} >
+                        Accident routier
+                    </Radio>
+                </div>
+                <div class="flex items-center mb-2">
+                    <Radio bind:group class="text-gray-100 mr-2" id="fleuve" value={3} >
+                        Accident fluvial
+                    </Radio>
+                </div>
+                <div class="flex items-center">
+                    <Radio bind:group class="text-gray-100 mr-2" id="air" value={4} >
+                        Accident aérien
+                    </Radio>
+                </div>
+                <div class="flex items-center">
+                    <Radio bind:group class="text-gray-100 mr-2" id="eboulement" value={5}>
+                        Éboulement
+                    </Radio>
+                </div>
+                <div class="flex items-center mb-2">
+                    <Radio bind:group class="text-gray-100 mr-2" id="serpents" value={6} >
+                        Invasion de serpents
+                    </Radio>
+                </div>
+                <div class="flex items-center mb-2">
+                    <Radio bind:group class="text-gray-100 mr-2" id="gaz" value={7} >
+                        Fuite de gaz
+                    </Radio>
+                </div>
+                <div class="flex items-center mb-2">
+                    <Radio bind:group class="text-gray-100 mr-2" id="manifestation" value={8}>
+                        Manifestation
+                    </Radio>
+                </div>
+                <div class="flex items-center">
+                    <Radio bind:group class="text-gray-100 mr-2" id="braquage" value={9} >
+                        Braquage
+                    </Radio>
+                </div>
+                <div class="flex items-center">
+                    <Radio bind:group class="text-gray-100 mr-2" id="evasion" value={10} >
+                        Évasion d'un prisonnier
+                    </Radio>
+                </div>
+            </div>
+            <div class="w-full  mb-12 md:mb-0">
+                <label class="block uppercase tracking-wide text-gray-700  dark:text-gray-100 text-xs font-bold mb-2" for="grid-long">
+                    Longitude
+                </label>
+                <input  bind:value={lgClick}   class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                         id="grid-long"  type="text" required>
+            </div>
+            <div class="w-full mb-12 md:mb-0">
+                <label class="block uppercase tracking-wide text-gray-700  dark:text-gray-100 text-xs font-bold mb-2" for="grid-lat">
+                    Latitude
+                </label>
+                <input bind:value={ltClick}
+                        class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                        id="grid-lat"  type="text" required>
+            </div>
+            <button class="w-full" on:click={submitForm} type="submit">Ajouter</button>
+        </form>
+    </div>
+</Modal>
 
 
 <div id="map"></div>

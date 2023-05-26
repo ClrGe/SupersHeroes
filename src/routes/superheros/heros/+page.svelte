@@ -4,6 +4,8 @@
     import {api} from "../../api.ts";
     let data = [];
     let incidentData = [];
+    import MapboxSearchBox from 'mapbox-gl';
+    import mapboxgl from "mapbox-gl";
 
     function onReady() {
         mapComponent.flyTo({center: [40.7127281, -74.0060152]})
@@ -13,7 +15,7 @@
     let name;
     let email;
     let phone;
-
+let map;
 
     let formHero = {
         "name": name || "Batman",
@@ -53,14 +55,21 @@
                 alert('You can select up to 3 checkboxes');
             }
         }
+        mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_ACCESS_TOKEN;
 
-        function handleCheckboxClick(event) {
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
-            if (checkboxes.length > 3) {
-                event.target.checked = false;
-                alert('You can select up to 3 checkboxes');
-            }
-        }
+        // mapbox
+        map = new mapboxgl.Map({
+            accessToken: import.meta.env.VITE_MAPBOX_API_ACCESS_TOKEN,
+            container: 'map',
+            style: 'mapbox://styles/mapbox/streets-v11',
+            center: [-74.0060152, 40.7127281],
+            zoom: 7
+        });
+
+
+        const search = new MapboxSearchBox();
+        search.accessToken = import.meta.env.VITE_MAPBOX_API_ACCESS_TOKEN;
+        map.addControl(search);
     });
 
     async function submitForm(){
@@ -259,6 +268,8 @@
                            class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                            id="grid-lat" placeholder="2.35222" type="text">
                 </div>
+
+
                 <button class="w-full" on:click={submitForm} type="submit">Ajouter</button>
             </form>
 

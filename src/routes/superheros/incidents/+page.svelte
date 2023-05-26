@@ -160,7 +160,6 @@
 </script>
 <main class="h-full overflow-y-auto">
     <div class="container md: ">
-        <!-- Modal to be populated on click -->
 
         <!-- Modal toggle -->
 
@@ -233,14 +232,14 @@
                             <label class="block uppercase tracking-wide text-gray-700  dark:text-gray-100 text-xs font-bold mb-2" for="grid-long">
                                 Longitude
                             </label>
-                            <input  bind:value="{formEvent.longitude}" class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+                            <input   class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                     id="grid-long"  type="text" required>
                         </div>
                         <div class="w-full mb-12 md:mb-0">
                             <label class="block uppercase tracking-wide text-gray-700  dark:text-gray-100 text-xs font-bold mb-2" for="grid-lat">
                                 Latitude
                             </label>
-                            <input bind:value="{formEvent.latitude}"
+                            <input
                                    class="appearance-none block w-full bg-gray-200 text-gray-700 border border-gray-200 rounded py-3 px-4 leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
                                    id="grid-lat"  type="text" required>
                         </div>
@@ -261,7 +260,7 @@
                                 {#each dataHero as hero}
                                     {#each hero.incidentId as incidentId}
                                         {#if incidentId == item.incidentId}
-                                            {#if calculateDistance(item.latitude, item.longitude, hero.latitude, hero.longitude) < 50}
+                                            {#if calculateDistance(item.latitude, item.longitude, hero.latitude, hero.longitude) }
                                                 <table class="w-full whitespace-no-wrap">
                                                     <thead>
                                                     <tr class="text-xs font-semibold tracking-wide text-left text-gray-500 uppercase border-b dark:border-gray-700 bg-gray-50 dark:text-gray-400 dark:bg-gray-800"
