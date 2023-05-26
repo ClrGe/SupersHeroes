@@ -1,5 +1,4 @@
 <style>
-
     body {
         margin: 0;
         padding: 0;
@@ -63,28 +62,40 @@
     export let latHero;
     export let longHero;
 
-    const calculateDistance = (latitude1, longitude1, latitude2, longitude2) => {
-        const earthRadius = 6371; // Radius of the Earth in kilometers
-        const lat1Rad = toRadians(latitude1);
-        const lat2Rad = toRadians(latitude2);
-        const latDiffRad = toRadians(latitude2 - latitude1);
-        const lngDiffRad = toRadians(longitude2 - longitude1);
-
-        const a =
-            Math.sin(latDiffRad / 2) ** 2 +
-            Math.cos(lat1Rad) *
-            Math.cos(lat2Rad) *
-            Math.sin(lngDiffRad / 2) ** 2;
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-        return earthRadius * c;
-    };
-
+    let data = [];
+    let eventId = activeMapItem;
+    let radioEvent = {
+        "incidentId": eventId,
+        "heroId": 1,
+        "city": "Gotham",
+        "longitude": -74.0060152,
+        "latitude": 40.7127281,
+        "status": "pending",
+    }
     const toRadians = (degrees) => {
         return (degrees * Math.PI) / 180;
     };
 
     onMount(async () => {
+
+        async function submitRadio(){
+            // retrieve the value of "group" bound to radio buttons and assign it to the formEvent object incidentId property
+            radioEvent.incidentId = eventId;
+            try {
+                const response = await fetch('http://localhost:5039/api/event/add', {
+                    method: 'POST',
+                    headers: {
+                        'Allow-Control-Allow-Origin': '*',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(radioEvent)
+                });
+                console.log(data);
+            } catch (e) {
+                console.log(e);
+            }
+        }
+
         mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_API_ACCESS_TOKEN;
 
         // Create the map
@@ -119,6 +130,126 @@
                     .addTo(map);
             }
 
+            // add source and layer for the hero markers with values from the arrays "latHero" and "longHero"
+            map.addSource('heroes', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    properties: {
+                        // display values from the heroesList object looking for the incidentId matching the eventId
+                        title: '',
+                        description: 'Heroes',
+                        'marker-color': '#3bb2d0',
+                        'marker-size': 'large',
+                        'marker-symbol': 'rocket'
+                    },
+                    features: latHero.map((lat, i) => ({
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [longHero[i], lat]
+                        }
+                    }))
+                }
+            });
+
+            map.addLayer({
+                id: 'heroes',
+                type: 'symbol',
+                source: 'heroes',
+                layout: {
+                    'icon-image': 'rocket-15',
+                    'icon-allow-overlap': true
+                }
+            });
+
+
+
+            // add source and layer for the incident markers with values from the arrays "latitude" and "longitude"
+            map.addSource('incidents', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    properties: {
+                        title: 'Incidents',
+                        description: 'Incidents',
+                        'marker-color': '#3bb2d0',
+                        'marker-size': 'large',
+                        'marker-symbol': 'rocket'
+                    },
+                    features: latitude.map((lat, i) => ({
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [longitude[i], lat]
+                        }
+                    }))
+                }
+            });
+
+            map.addLayer({
+                id: 'incidents',
+                type: 'symbol',
+                source: 'incidents',
+                layout: {
+                    'icon-image': 'rocket-15',
+                    'icon-allow-overlap': true
+                }
+            });
+
+            // add popup source and layer for the incident markers
+            map.addSource('incidents-popup', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    properties: {
+                        title: 'Incidents',
+                        description: 'Incidents',
+                        'marker-color': '#3bb2d0',
+                        'marker-size': 'large',
+                        'marker-symbol': 'rocket'
+                    },
+                    features: latitude.map((lat, i) => ({
+                        type: 'Feature',
+                        geometry: {
+                            type: 'Point',
+                            coordinates: [longitude[i], lat]
+                        }
+                    }))
+                }
+            });
+            // add popup layer for the incident markers
+            map.addLayer({
+                id: 'incidents-popup',
+                type: 'symbol',
+                source: 'incidents-popup',
+                layout: {
+                    'icon-image': 'rocket-15',
+                    'icon-allow-overlap': true
+                }
+            });
+
+
+
+
+            });
+
+        map.on('mouseenter', 'incidents', function (e) {
+            // display a 50km radius circle around the marker when clicking it
+            map.addSource('circle', {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: e.features[0].geometry.coordinates
+                    }
+                }
+            });
+            map.flyTo({
+                center: e.features[0].geometry.coordinates,
+                zoom: 10
+            });
             // add markers for each values in the arrays "latHero" and "longHero"
             for (let i = 0; i < latHero.length; i++) {
                 new mapboxgl.Marker({color: 'yellow'})
@@ -137,36 +268,14 @@
             );
 
             var marker = new mapboxgl.Marker();
-            const popup = new mapboxgl.Popup({closeOnClick: false})
+            const popup = new mapboxgl.Popup({closeOnClick: true})
+            const detailsMarkerPopup = new mapboxgl.Popup({closeOnClick: true})
+
             let eventId;
-            let data = [];
-            let radioEvent = {
-                "incidentId": eventId,
-                "heroId": 1,
-                "city": "Gotham",
-                "longitude": -74.0060152,
-                "latitude": 40.7127281,
-                "status": "pending",
-            }
-            async function submitRadio(){
-                // retrieve the value of "group" bound to radio buttons and assign it to the formEvent object incidentId property
-                radioEvent.incidentId = eventId;
-                try {
-                    const response = await fetch('http://localhost:5039/api/event/add', {
-                        method: 'POST',
-                        headers: {
-                            'Allow-Control-Allow-Origin': '*',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(radioEvent)
-                    });
-                    console.log(data);
-                } catch (e) {
-                    console.log(e);
-                }
-            }
+
             function add_marker(event) {
                 var coordinates = event.lngLat;
+                formModal = true;
                 marker.setLngLat(coordinates).addTo(map);
                 popup.setLngLat(coordinates).setHTML(
                     '                <div class="w-full overflow-hidden rounded-lg shadow-xs flex items-center ">\n' +
@@ -234,6 +343,9 @@
                     '                </div>\n').addTo(map);
             }
 
+
+
+
             // add marker on right click
             map.on('contextmenu', add_marker);
 
@@ -294,12 +406,20 @@
                             'text-anchor': 'top'
                         }
                     });
-                    // display longitude and latitude when clicking on the map
-                    map.on('click', function (e) {
-                        document.getElementById('info').innerHTML =
-                            JSON.stringify(e.point) +
-                            '<br />' +
-                            JSON.stringify(e.lngLat.wrap());
+                    // display a 50km radius circle around the marker when clicking it
+                    map.on('click', 'points', function (e) {
+                        var coordinates = e.features[0].geometry.coordinates.slice();
+                        var description = e.features[0].properties.description;
+                        // Ensure that if the map is zoomed out such that multiple
+                        // copies of the feature are visible, the popup appears
+                        // over the copy being pointed to.
+                        while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                            coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+                        }
+                        new mapboxgl.Popup()
+                            .setLngLat(coordinates)
+                            .setHTML(description)
+                            .addTo(map);
                     });
 
                     // display popup when clicking a marker
@@ -329,6 +449,7 @@
                     });
                 });
         });
+
     });
 
     // Update map center when active list item is updated via list

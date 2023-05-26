@@ -3,7 +3,7 @@
 	import {onMount} from "svelte";
 	import mapboxgl from "mapbox-gl/dist/mapbox-gl";
 	import MapboxGeocoder from "mapbox-gl-geocoder/lib";
-
+    import logo from '$lib/images/logoher.png'
 	export let user: any
     let withSearch = true
     mapboxgl.accessToken = 'pk.eyJ1IjoiY2xhaXJnZSIsImEiOiJjbGdxNmtiNTkwNmRmM2pzM3drbnA5a3h5In0.akdkLqiIt0WArmknZwTNCw';
@@ -40,14 +40,7 @@
                 id="nav-mobile-hamburger"
                 on:click={toggleSideMenu}
         >
-            <img class="w-6 h-6" src
-            <svg aria-hidden="true" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                        clip-rule="evenodd"
-                        d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
-                        fill-rule="evenodd"
-                />
-            </svg>
+            <img class="w-6 h-6" src={logo} alt="logo">
         </button>
 
         {#if withSearch}

@@ -90,7 +90,7 @@
 </svelte:head>
 
 <main class="h-full pb-16 overflow-y-auto">
-    <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Ajouter un Super Héros </h2>
+    <h2 class="my-6 text-2xl font-semibold text-gray-700 dark:text-gray-200">Liste des Super Héros </h2>
     <Modal autoclose={false} bind:open={formModal} class="w-full" id="form-modal" size="xs">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
