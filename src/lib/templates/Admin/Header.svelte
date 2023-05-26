@@ -40,6 +40,7 @@
                 id="nav-mobile-hamburger"
                 on:click={toggleSideMenu}
         >
+            <img class="w-6 h-6" src
             <svg aria-hidden="true" class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
                 <path
                         clip-rule="evenodd"
